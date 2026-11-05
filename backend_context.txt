@@ -1,0 +1,638 @@
+=== ARCHITECTURE BACKEND PYTHON (FASTAPI + LANGGRAPH + CHROMADB) ===
+
+
+--- FICHIER : api.py ---
+import socket
+_orig_getaddrinfo = socket.getaddrinfo
+socket.getaddrinfo = lambda host, port, family=0, type=0, proto=0, flags=0: _orig_getaddrinfo(host, port, socket.AF_INET, type, proto, flags)
+
+import os
+import re
+from datetime import date, timedelta
+from typing import List, Optional
+import requests
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+
+from ingest_videos import NOTEBOOK_VIDEOS
+from tools import (
+    ATHLETE_ID,
+    INTERVALS_API_KEY,
+    BASE_URL,
+    collection,
+    speed_to_pace,
+)
+from agent_cli import agent
+
+app = FastAPI(title="RunWise x Intervals.icu API", version="1.0.0")
+
+# Autoriser le Front-End (Google AI Studio / localhost:3000 / Vite) à appeler l'API
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Mémoire des conversations par session
+SESSIONS = {}
+
+class ChatRequest(BaseModel):
+    message: str
+    session_id: str = "default"
+
+@app.get("/api/videos")
+def list_videos():
+    """Renvoie les 52 vidéos RunWise avec miniatures et statut d'indexation ChromaDB."""
+    existing = collection.get(include=["metadatas"])
+    indexed_ids = {m["video_id"] for m in existing.get("metadatas", []) if m and "video_id" in m}
+
+    videos = []
+    for v in NOTEBOOK_VIDEOS:
+        vid = v["id"]
+        videos.append({
+            "id": vid,
+            "title": v["title"],
+            "url": f"https://www.youtube.com/watch?v={vid}",
+            "embed_url": f"https://www.youtube.com/embed/{vid}",
+            "thumbnail": f"https://i.ytimg.com/vi/{vid}/hqdefault.jpg",
+            "indexed": vid in indexed_ids,
+        })
+    return {"total": len(videos), "indexed_count": len(indexed_ids), "videos": videos}
+
+@app.get("/api/videos/search")
+def search_videos(q: str, limit: int = 6):
+    """Recherche sémantique directe dans les transcriptions RunWise avec timestamps."""
+    if collection.count() == 0:
+        return {"results": []}
+    res = collection.query(query_texts=[q], n_results=limit)
+    hits = []
+    for doc, meta in zip(res["documents"][0], res["metadatas"][0]):
+        mins, secs = divmod(meta["start_sec"], 60)
+        hits.append({
+            "video_id": meta["video_id"],
+            "title": meta["title"],
+            "start_sec": meta["start_sec"],
+            "timestamp_str": f"{mins:02d}:{secs:02d}",
+            "url": meta["url"],
+            "thumbnail": f"https://i.ytimg.com/vi/{meta['video_id']}/hqdefault.jpg",
+            "excerpt": doc,
+        })
+    return {"results": hits}
+
+@app.get("/api/intervals/dashboard")
+def get_dashboard_data(days: int = 14):
+    """Renvoie les données JSON brutes (Wellness + Séances) pour les graphiques du Front-End."""
+    oldest = (date.today() - timedelta(days=days)).isoformat()
+    newest = date.today().isoformat()
+
+    w_resp = requests.get(
+        f"{BASE_URL}/athlete/{ATHLETE_ID}/wellness?oldest={oldest}&newest={newest}",
+        auth=("API_KEY", INTERVALS_API_KEY),
+        timeout=10,
+    )
+    a_resp = requests.get(
+        f"{BASE_URL}/athlete/{ATHLETE_ID}/activities?oldest={oldest}&newest={newest}",
+        auth=("API_KEY", INTERVALS_API_KEY),
+        timeout=10,
+    )
+
+    wellness = []
+    if w_resp.ok:
+        for w in w_resp.json():
+            ctl = round(w.get("ctl") or 0, 1)
+            atl = round(w.get("atl") or 0, 1)
+            wellness.append({
+                "date": w.get("id"),
+                "ctl": ctl,
+                "atl": atl,
+                "tsb": round(ctl - atl, 1),
+                "resting_hr": w.get("restingHR"),
+                "hrv": w.get("hrv"),
+            })
+
+    activities = []
+    if a_resp.ok:
+        for act in a_resp.json():
+            if act.get("type") in ["Run", "TrailRun", "VirtualRun", "Track"]:
+                activities.append({
+                    "id": act.get("id"),
+                    "date": act.get("start_date_local", "")[:10],
+                    "name": act.get("name"),
+                    "distance_km": round((act.get("distance") or 0) / 1000, 2),
+                    "moving_time_min": round((act.get("moving_time") or 0) / 60, 1),
+                    "pace": speed_to_pace(act.get("average_speed")),
+                    "avg_hr": act.get("average_heartrate"),
+                    "max_hr": act.get("max_heartrate"),
+                    "load": act.get("icu_training_load"),
+                    "decoupling": act.get("decoupling"),
+                })
+
+    return {"wellness": wellness, "activities": activities}
+
+@app.post("/api/chat")
+def chat_with_coach(req: ChatRequest):
+    """Envoie un message à l'agent LangGraph et retourne la réponse + les outils utilisés."""
+    history = SESSIONS.get(req.session_id, [])
+    prev_len = len(history)
+    history.append(("user", req.message))
+
+    result = agent.invoke({"messages": history})
+    messages = result["messages"]
+    SESSIONS[req.session_id] = messages
+
+    tools_used = []
+    for msg in messages[prev_len:]:
+        if hasattr(msg, "tool_calls") and msg.tool_calls:
+            for tc in msg.tool_calls:
+                tools_used.append({"name": tc["name"], "args": tc["args"]})
+
+    final_msg = messages[-1].content
+    if isinstance(final_msg, list):
+        answer = "\n".join(p.get("text", "") for p in final_msg if isinstance(p, dict))
+    else:
+        answer = str(final_msg)
+
+    # Extraire automatiquement les liens YouTube horodatés cités dans la réponse pour le lecteur vidéo du Front
+    yt_refs = []
+    for match in re.finditer(r"watch\?v=([a-zA-Z0-9_-]{11})(?:&t=(\d+)s)?", answer):
+        yt_refs.append({
+            "video_id": match.group(1),
+            "start_sec": int(match.group(2)) if match.group(2) else 0,
+        })
+
+    return {
+        "answer": answer,
+        "tools_used": tools_used,
+        "video_references": yt_refs,
+    }
+
+@app.post("/api/chat/reset")
+def reset_chat(session_id: str = "default"):
+    SESSIONS.pop(session_id, None)
+    return {"status": "cleared"}
+
+
+--- FICHIER : tools.py ---
+import os
+import requests
+import chromadb
+from datetime import date, timedelta
+from dotenv import load_dotenv
+from langchain_core.tools import tool
+
+load_dotenv()
+
+ATHLETE_ID = os.getenv("INTERVALS_ATHLETE_ID")
+INTERVALS_API_KEY = os.getenv("INTERVALS_API_KEY")
+BASE_URL = "https://intervals.icu/api/v1"
+
+chroma_client = chromadb.PersistentClient(path="./chroma_db")
+collection = chroma_client.get_or_create_collection(name="runwise_podcasts")
+
+def speed_to_pace(speed_ms: float) -> str:
+    if not speed_ms or speed_ms <= 0:
+        return "N/A"
+    sec_per_km = 1000.0 / speed_ms
+    mins = int(sec_per_km // 60)
+    secs = int(round(sec_per_km % 60))
+    if secs == 60:
+        mins += 1
+        secs = 0
+    return f"{mins}'{secs:02d}\"/km"
+
+def format_duration(seconds: int) -> str:
+    if not seconds:
+        return "0s"
+    mins, secs = divmod(int(seconds), 60)
+    return f"{mins}'{secs:02d}\"" if mins > 0 else f"{secs}\""
+
+@tool
+def search_runwise_knowledge(query: str) -> str:
+    """Cherche dans les transcriptions du RunWise Podcast les concepts d'entraînement,
+    allures, seuil, volume ou physiologie. Retourne les extraits avec le titre et l'URL horodatée."""
+    if collection.count() == 0:
+        return "La base ChromaDB RunWise est vide pour le moment (lance ingest_videos.py)."
+    results = collection.query(query_texts=[query], n_results=4)
+    formatted = []
+    for doc, meta in zip(results["documents"][0], results["metadatas"][0]):
+        mins, secs = divmod(meta["start_sec"], 60)
+        formatted.append(
+            f"🎥 Épisode: {meta['title']} (à {mins:02d}:{secs:02d})\n"
+            f"🔗 Lien: {meta['url']}\n"
+            f"💬 Extrait: {doc}\n"
+        )
+    return "\n---\n".join(formatted)
+
+@tool
+def get_intervals_activities(days: int = 14) -> str:
+    """Récupère la liste des séances des X derniers jours avec leur activity_id."""
+    oldest = (date.today() - timedelta(days=days)).isoformat()
+    newest = date.today().isoformat()
+    r = requests.get(
+        f"{BASE_URL}/athlete/{ATHLETE_ID}/activities?oldest={oldest}&newest={newest}",
+        auth=("API_KEY", INTERVALS_API_KEY), timeout=10
+    )
+    r.raise_for_status()
+
+    output = []
+    for act in r.json():
+        if act.get("type") in ["Run", "TrailRun", "VirtualRun", "Track"]:
+            dist_km = round((act.get("distance") or 0) / 1000, 2)
+            pace = speed_to_pace(act.get("average_speed"))
+            output.append(
+                f"🆔 ID: {act.get('id')} | 📅 {act.get('start_date_local')[:10]} | "
+                f"🏃 {act.get('name')} | {dist_km} km ({pace}) | "
+                f"FC Moy/Max: {act.get('average_heartrate')}/{act.get('max_heartrate')} bpm | "
+                f"Load: {act.get('icu_training_load')} | Découplage: {act.get('decoupling')}%"
+            )
+    return "\n".join(output) if output else "Aucune activité trouvée sur cette période."
+
+@tool
+def get_activity_intervals_detail(activity_id: str) -> str:
+    """Récupère le détail complet des tours (laps/intervalles) d'une séance précise
+    à partir de son activity_id (distance, durée, allure au km, FC moy/max, cadence)."""
+    r = requests.get(
+        f"{BASE_URL}/activity/{activity_id}/intervals",
+        auth=("API_KEY", INTERVALS_API_KEY), timeout=10
+    )
+    r.raise_for_status()
+    data = r.json()
+
+    intervals = data.get("icu_intervals", [])
+    if not intervals:
+        return f"Aucun intervalle détecté pour la séance {activity_id}."
+
+    lines = [f"📊 Détail des intervalles pour la séance {activity_id} :"]
+    for idx, lap in enumerate(intervals, start=1):
+        lap_type = lap.get("type", "UNKNOWN")
+        label = lap.get("label") or lap_type
+        dist_m = int(round(lap.get("distance") or 0))
+        duration = format_duration(lap.get("moving_time"))
+        pace = speed_to_pace(lap.get("average_speed"))
+        avg_hr = lap.get("average_heartrate") or "N/A"
+        max_hr = lap.get("max_heartrate") or "N/A"
+        raw_cad = lap.get("average_cadence")
+        cadence = f"{int(round(raw_cad * 2))} spm" if raw_cad else "N/A"
+
+        icon = "🔥 [EFFORT]" if lap_type == "WORK" else "💧 [RÉCUP] "
+        lines.append(
+            f"Tour {idx:02d} {icon} ({label}) : {dist_m}m en {duration} "
+            f"| Allure: {pace} | FC: {avg_hr} bpm (Max: {max_hr}) | Cadence: {cadence}"
+        )
+
+    groups = data.get("icu_groups", [])
+    if groups:
+        lines.append("\n📌 Synthèse automatique des blocs d'effort (Groups) :")
+        for g in groups:
+            g_pace = speed_to_pace(g.get("average_speed"))
+            lines.append(
+                f"- Bloc '{g.get('id')}' ({g.get('count')} répétitions) : "
+                f"Moyenne {int(round(g.get('distance') or 0))}m en {format_duration(g.get('moving_time'))} ({g_pace}) "
+                f"| FC Moy: {g.get('average_heartrate')} bpm"
+            )
+    return "\n".join(lines)
+
+@tool
+def get_intervals_wellness(days: int = 7) -> str:
+    """Récupère l'état de forme (Fitness CTL, Fatigue ATL, Form TSB = CTL - ATL), FC au repos et VFC/HRV."""
+    oldest = (date.today() - timedelta(days=days)).isoformat()
+    newest = date.today().isoformat()
+    r = requests.get(
+        f"{BASE_URL}/athlete/{ATHLETE_ID}/wellness?oldest={oldest}&newest={newest}",
+        auth=("API_KEY", INTERVALS_API_KEY), timeout=10
+    )
+    r.raise_for_status()
+
+    output = []
+    for w in r.json():
+        ctl = round(w.get("ctl") or 0, 1)
+        atl = round(w.get("atl") or 0, 1)
+        tsb = round(ctl - atl, 1)
+        output.append(
+            f"📅 {w.get('id')} | CTL (Fitness): {ctl} | ATL (Fatigue): {atl} | "
+            f"TSB (Forme): {tsb} | FC Repos: {w.get('restingHR')} bpm | HRV: {w.get('hrv')}"
+        )
+    return "\n".join(output)
+
+@tool
+def get_planned_workouts(days_ahead: int = 7) -> str:
+    """Consulte les séances et événements déjà prévus dans le calendrier Intervals.icu pour les X prochains jours."""
+    oldest = date.today().isoformat()
+    newest = (date.today() + timedelta(days=days_ahead)).isoformat()
+    r = requests.get(
+        f"{BASE_URL}/athlete/{ATHLETE_ID}/events?oldest={oldest}&newest={newest}",
+        auth=("API_KEY", INTERVALS_API_KEY), timeout=10
+    )
+    r.raise_for_status()
+    events = r.json()
+    if not events:
+        return f"Aucun entraînement planifié entre le {oldest} et le {newest}."
+
+    output = [f"🗓️ Calendrier prévu du {oldest} au {newest} :"]
+    for ev in events:
+        ev_date = ev.get("start_date_local", "")[:10]
+        output.append(f"- {ev_date} | [{ev.get('category')}] {ev.get('name')} |\n{ev.get('description', '')}")
+    return "\n".join(output)
+
+@tool
+def schedule_intervals_workout(workout_date: str, name: str, workout_syntax: str) -> str:
+    """Planifie et crée une séance d'entraînement structurée dans le calendrier Intervals.icu.
+    workout_date: 'YYYY-MM-DD'
+    name: Titre de la séance
+    workout_syntax: Syntaxe stricte Intervals.icu avec sections (Warmup, Main Set Nx, Cooldown) et lignes commençant par '- '."""
+    url = f"{BASE_URL}/athlete/{ATHLETE_ID}/events"
+    payload = {
+        "category": "WORKOUT",
+        "start_date_local": f"{workout_date}T00:00:00",
+        "name": name,
+        "description": workout_syntax,
+        "type": "Run"
+    }
+    r = requests.post(url, auth=("API_KEY", INTERVALS_API_KEY), timeout=10, json=payload)
+    if r.status_code not in (200, 201):
+        return f"❌ Erreur ({r.status_code}): {r.text}"
+    data = r.json()
+    est_dist = round((data.get("distance") or 0) / 1000, 2)
+    return f"✅ Séance '{name}' programmée le {workout_date} (ID: {data.get('id')}, ~{est_dist} km, Load: {data.get('icu_training_load')})"
+
+
+--- FICHIER : agent_cli.py ---
+from datetime import date
+from dotenv import load_dotenv
+from rich.console import Console
+from rich.markdown import Markdown
+from langchain_google_genai import ChatGoogleGenerativeAI
+from langgraph.prebuilt import create_react_agent
+from tools import (
+    collection,
+    search_runwise_knowledge,
+    get_intervals_activities,
+    get_activity_intervals_detail,
+    get_intervals_wellness,
+    get_planned_workouts,
+    schedule_intervals_workout,
+)
+
+load_dotenv()
+console = Console()
+
+# 1. Pré-chauffer ChromaDB au lancement pour ne pas bloquer pendant la conversation
+with console.status("[bold cyan]Initialisation de ChromaDB (RunWise)...[/bold cyan]"):
+    nb_chunks = collection.count()
+    if nb_chunks > 0:
+        collection.query(query_texts=["test"], n_results=1)
+console.print(f"[green]✅ Base RunWise prête ({nb_chunks} segments en mémoire)[/green]")
+
+# 2. Initialisation de Gemini avec timeout
+llm = ChatGoogleGenerativeAI(
+    model="gemini-3.5-flash",
+    temperature=0.2,
+    timeout=30,
+)
+
+TODAY = date.today().isoformat()
+
+SYSTEM_PROMPT = f"""Tu es un coach de course à pied expert. Nous sommes aujourd'hui le {TODAY}.
+Tu t'appuies sur :
+1. La philosophie scientifique et terrain du 'RunWise Podcast' (via search_runwise_knowledge).
+2. Les données réelles de l'athlète sur Intervals.icu (séances, tours/laps, wellness CTL/ATL/TSB, calendrier).
+
+Règles :
+- Cite TOUJOURS l'épisode RunWise, le timestamp (MM:SS) et le lien YouTube quand tu t'appuies sur une vidéo.
+- Quand on te demande d'analyser une séance précise, appelle d'abord get_intervals_activities pour trouver son ID, puis get_activity_intervals_detail(activity_id) pour voir les laps.
+- Sois précis sur les chiffres (allures au km, dérive cardiaque, charge CTL/ATL).
+"""
+
+agent = create_react_agent(
+    model=llm,
+    tools=[
+        search_runwise_knowledge,
+        get_intervals_activities,
+        get_activity_intervals_detail,
+        get_intervals_wellness,
+        get_planned_workouts,
+        schedule_intervals_workout,
+    ],
+    prompt=SYSTEM_PROMPT,
+)
+
+def main():
+    console.print(f"[bold green]🏃‍♂️ RunWise x Intervals.icu CLI ({TODAY}) — Tape 'q' pour quitter[/bold green]\n")
+    messages = []
+
+    while True:
+        try:
+            user_input = console.input("[bold cyan]Toi > [/bold cyan]")
+        except (KeyboardInterrupt, EOFError):
+            break
+        if user_input.strip().lower() in ["q", "quit", "exit"]:
+            break
+        if not user_input.strip():
+            continue
+
+        messages.append(("user", user_input))
+        final_answer = ""
+
+        # Streaming étape par étape : affiche les appels d'outils en direct !
+        with console.status("[bold yellow]🤖 Réflexion de l'agent...[/bold yellow]") as status:
+            for step in agent.stream({"messages": messages}, stream_mode="updates"):
+                for node_name, node_data in step.items():
+                    new_msgs = node_data.get("messages", [])
+                    for msg in new_msgs:
+                        messages.append(msg)
+                        # Si le modèle décide d'appeler un outil, on l'affiche tout de suite
+                        if hasattr(msg, "tool_calls") and msg.tool_calls:
+                            for tc in msg.tool_calls:
+                                console.print(f"[bold cyan]  ⚡ Appel en cours :[/bold cyan] [yellow]{tc['name']}({tc['args']})[/yellow]")
+                                status.update(f"[bold yellow]Exécution de {tc['name']}...[/bold yellow]")
+                        # Si un outil vient de répondre, on confirme sa réception
+                        elif msg.type == "tool":
+                            console.print(f"[dim green]  ✔ Données reçues de {msg.name} ({len(str(msg.content))} caractères)[/dim green]")
+                            status.update("[bold yellow]✍️  Synthèse de la réponse par Gemini...[/bold yellow]")
+                        # Si c'est la réponse finale du modèle
+                        elif msg.type == "ai" and msg.content:
+                            if isinstance(msg.content, list):
+                                final_answer = "\n".join(p.get("text", "") for p in msg.content if isinstance(p, dict))
+                            else:
+                                final_answer = str(msg.content)
+
+        console.print("\n[bold magenta]Coach RunWise >[/bold magenta]")
+        console.print(Markdown(final_answer))
+        console.print("[dim]" + "─" * 70 + "[/dim]\n")
+
+if __name__ == "__main__":
+    main()
+
+
+--- FICHIER : ingest_videos.py ---
+import time
+import random
+import json
+import urllib.request
+import yt_dlp
+import chromadb
+
+client = chromadb.PersistentClient(path="./chroma_db")
+collection = client.get_or_create_collection(name="runwise_podcasts")
+
+NOTEBOOK_VIDEOS = [
+    {"id": "2SIsQX4NBxA", "title": "30 ans d’expérience, des centaines d’athlètes coachés… il nous dit ce qui compte vraiment"},
+    {"id": "7M-loGjtQcE", "title": "Alois Abraham: le jeune Français meilleur que Jakob au même âge"},
+    {"id": "jmRaPbRVK78", "title": "Carbones, Fatigue Périphérique, Qualité Neuromusculaire, Musculation, Zones de FC, Seuil, Sommeil"},
+    {"id": "WC85DTRK8pE", "title": "Ce coach a testé des dizaines de coureurs en laboratoire"},
+    {"id": "3HyQ7Q-XVKA", "title": "Ce coach privilégie la VITESSE... Et ça marche! La philosophie gagnante de Samuel Marion"},
+    {"id": "1kf4-nc7Q8Y", "title": "Ce jeune coach est derrière le succès de Jimmy Gressier et Nico Daru"},
+    {"id": "MPnl55yLGOs", "title": "Cet étudiant en médecine a participé aux JO en courant moins de 100km par semaine 😤"},
+    {"id": "TsDKJKVzI-8", "title": "Cette femme est derrière la domination du TRIATHLON français moderne"},
+    {"id": "p56esuSw5eY", "title": "Comment s'entrainer pour du semi-marathon avec COACH Marc-Antoine Seneville"},
+    {"id": "zbIFNftTrjA", "title": "De 2h32 à 2h05 : comment Nicolas Navarro est devenu l'un des meilleurs marathoniens français"},
+    {"id": "tMXJY7tvmDM", "title": "Elle court 31'15 sur 10km avec 80km/semaine 😮 | SPÉCIAL TOKYO 2025"},
+    {"id": "bDHmgcH2NLI", "title": "Elle quitte la France et devient la meilleure Française sur 3000m Steeple avec Alice Finot"},
+    {"id": "N4y78GF3icM", "title": "Entrainement marathon, VMA, sorties longues, chaussures carbone, côtes avec Jérémy Cabadet"},
+    {"id": "6G3DCBcuDKg", "title": "Entraînement, Seuil, Musculation… Comment Habz est devenu le meilleur Français sur 1500m"},
+    {"id": "OarmN8TGgYA", "title": "Fatigue neuro, Système nerveux, Ultra, Descentes et Week-end choc avec le Dr. Guillaume Millet"},
+    {"id": "9QkuiNKTUDI", "title": "Félix-Antoine Lapointe: l'entraîneur qui fait voler les coureurs Canadiens"},
+    {"id": "k2Gp0nYFOeE", "title": "Gels, Électrolytes, Gut-training, Carb-load, Pic Glycémique, NutriScore, Suppléments @nouchkadiet"},
+    {"id": "V7L1H4gkGPA", "title": "Glucides, Suppléments, Crampes, Caféine, Électrolytes, Calories et Poids avec Valentin Lacroix"},
+    {"id": "R2wxhazHoDk", "title": "Il a coaché Mehdi Baala, Renelle Lamotte, Bob Tahri, Bosse: On parle entrainement avec Bruno Gajer"},
+    {"id": "rI6T6TjYEVs", "title": "Il court 59’27 au semi… sans copier les méthodes classiques"},
+    {"id": "DFG3TzGk280", "title": "Ils racontent leur expérience étudiant-athlète aux USA sur le circuit NCAA"},
+    {"id": "RcFe3gJePb4", "title": "Importance du foncier, Réserve de vitesse, Altitude, Affutage, Qualité de pied, Pliométrie et Muscu"},
+    {"id": "33jma7_FGMw", "title": "Julien Wanders me reçoit chez lui au Kenya: Retour à haut niveau? Sa santé? Sa vie au Kenya?"},
+    {"id": "8SDvKnsLOxs", "title": "Kevin Mayer me donne une leçon de DECATHLON 🥵"},
+    {"id": "O4UXHcnQuUo", "title": "L'entrainement 100km, Marathon, Parentalité, Nutrition, Musculation"},
+    {"id": "uSGKXoI4e00", "title": "L'entraînement des années 80 et ce qui a vraiment changé avec Jacques Marechet"},
+    {"id": "x-0kwT8Aegw", "title": "La vie d'un Olympien au 1500m (pas toujours rose...)"},
+    {"id": "buZa2MH-rjg", "title": "Le PRÉPARATEUR PHYSIQUE qui fait voler les meilleurs coureurs canadiens 🏋️"},
+    {"id": "b28j4InkFYI", "title": "Le RunWise Podcast débarque sur YouTube"},
+    {"id": "agnpvIys0-E", "title": "Le coaching en ligne, YouTube, nos erreurs et nos leçons avec @RunningAddict"},
+    {"id": "8S4kh-O1YuI", "title": "Le parcours improbable de Jimmy Whelan : de cycliste pro à 61 minutes au semi"},
+    {"id": "ztDKBYRO_Ws", "title": "Les coulisses de Run'ix, le Kenya, les meilleures chaussures et pourquoi il s'entraine comme Jakob"},
+    {"id": "3XXIrY1gY64", "title": "Les secrets de la méthode NORVÉGIENNE expliqués par un physiologiste 🤓"},
+    {"id": "LKM8iU3jEGY", "title": "Mon expérience de coaching avec @anthony.frontera (un athlète élite qui n'en fait qu'à sa tête 😅)"},
+    {"id": "1qyeMqZe2TQ", "title": "On prend une leçon de TRAIL par Mathieu Blanchard"},
+    {"id": "xw_o1s7fpTg", "title": "PEACE & LOVE : la meilleure méthode pour traiter les bl*ssures chez les coureurs ?"},
+    {"id": "0joleErKKLk", "title": "Physiologiste, 30 ans à l’INSEP, elle a formé nos meilleurs entraîneurs et athlètes français"},
+    {"id": "lRtEr1NMnew", "title": "Plaques carbones inutiles, le fameux 180 pas par minute : Blaise Dubois démonte des mythes !"},
+    {"id": "HYv055ki_fQ", "title": "Pourquoi les coureurs d’endurance devraient s’intéresser au sprint avec Younès Nezar"},
+    {"id": "yi25FpeTKmA", "title": "Pourquoi les meilleurs coureurs s'entrainent en altitude avec le Dr Grégory Doucende"},
+    {"id": "J7LteQARFmk", "title": "Pression des chronos et besoin de reconnaissance: Les sujets TABOU en course à pied"},
+    {"id": "Xz1OvhpPL6Y", "title": "Primes, contrats, sponsors, pacers : dans les coulisses du métier d’agent avec Julien Di Maria"},
+    {"id": "ZyvawZ7IjrM", "title": "Quand la course devient une addiction avec le Dr Nicolas Moreau"},
+    {"id": "jRpwbeXqhhg", "title": "Rencontre avec la marathonienne la plus RAPIDE du Québec, RP en 2h33 🥵"},
+    {"id": "uuCBDEu5HVY", "title": "Rencontre avec mon Dorys Langlois, mon ancien coach : le plus gros geek de course à pied 🤓"},
+    {"id": "oYBfpc5ttjk", "title": "Son Histoire, le Marathon de Berlin, sa Relation avec son Père avec @mustaphasalmi"},
+    {"id": "yIo6qB0t6sc", "title": "Son entraînement, 240km/sem, Mental, Auto-Coaching, Record du monde, Nutrition, Comrades, Salomon"},
+    {"id": "RQGvfi6GW_Q", "title": "Sprint, plio, biomécanique, économie de course, VO₂max, musculation et coordination avec JB Morin"},
+    {"id": "Cb8HzzDGtRs", "title": "Syblo: son Entrainement, Création de Contenu, Sponsoring, Équipe de France, Ses études, Marathon?"},
+    {"id": "IyX6iCKzPlw", "title": "« J’ai utilisé ChatGPT pour me qualifier aux JO » John Heymans | 13’03 sur 5000m"},
+    {"id": "3HyS0cmuTWQ", "title": "« Pour vraiment progresser, il faut apprendre à ralentir » Bastien Perraux, entraineur national"},
+    {"id": "4u4TJIYT2YM", "title": "« À l’armée, l’erreur coûte la vie… sur piste, c’est juste une course de plus » Nicolas Marie Dary"},
+]
+
+def is_already_indexed(video_id: str) -> bool:
+    """Vérifie si la vidéo est déjà dans ChromaDB pour ne pas la retélécharger."""
+    existing = collection.get(where={"video_id": video_id}, limit=1)
+    return len(existing.get("ids", [])) > 0
+
+def fetch_transcript_via_ytdlp(video_id: str):
+    """Récupère les sous-titres JSON3 via yt-dlp (beaucoup plus résistant au blocage IP)."""
+    url = f"https://www.youtube.com/watch?v={video_id}"
+    ydl_opts = {
+        "skip_download": True,
+        "writesubtitles": True,
+        "writeautomaticsub": True,
+        "subtitleslangs": ["fr", "en"],
+        "quiet": True,
+        "no_warnings": True,
+        # Décommente la ligne ci-dessous ("firefox" ou "chrome") si YouTube bloque encore :
+        # "cookiesfrombrowser": ("firefox",),
+    }
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        info = ydl.extract_info(url, download=False)
+        subs = info.get("subtitles", {}) or info.get("automatic_captions", {})
+        lang_subs = subs.get("fr") or subs.get("en")
+        if not lang_subs:
+            return None
+
+        # On cherche le format json3 qui contient les timestamps précis
+        json3_url = next((s["url"] for s in lang_subs if s.get("ext") == "json3"), None)
+        if not json3_url:
+            return None
+
+        req = urllib.request.Request(json3_url, headers={"User-Agent": "Mozilla/5.0"})
+        with urllib.request.urlopen(req) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+
+        transcript = []
+        for event in data.get("events", []):
+            if "segs" in event:
+                text = "".join(seg.get("utf8", "") for seg in event["segs"]).strip()
+                if text:
+                    start_sec = event.get("tStartMs", 0) / 1000.0
+                    transcript.append({"text": text, "start": start_sec})
+        return transcript
+
+def index_video(video_id: str, title: str, chunk_duration: int = 120):
+    try:
+        transcript = fetch_transcript_via_ytdlp(video_id)
+        if not transcript:
+            print(f"⚠️ Aucun sous-titre trouvé pour '{title[:40]}...'")
+            return
+    except Exception as e:
+        print(f"⚠️ Erreur sur '{title[:40]}...' ({video_id}): {e}")
+        return
+
+    chunks, metadatas, ids = [], [], []
+    current_text = []
+    chunk_start = 0.0
+
+    for item in transcript:
+        if not current_text:
+            chunk_start = item["start"]
+        current_text.append(item["text"].replace("\n", " "))
+
+        if (item["start"] - chunk_start) >= chunk_duration:
+            timestamp_sec = int(chunk_start)
+            chunks.append(f"[{title}] " + " ".join(current_text))
+            metadatas.append({
+                "video_id": video_id,
+                "title": title,
+                "start_sec": timestamp_sec,
+                "url": f"https://www.youtube.com/watch?v={video_id}&t={timestamp_sec}s"
+            })
+            ids.append(f"{video_id}_{timestamp_sec}")
+            current_text = []
+
+    if current_text:
+        timestamp_sec = int(chunk_start)
+        chunks.append(f"[{title}] " + " ".join(current_text))
+        metadatas.append({
+            "video_id": video_id,
+            "title": title,
+            "start_sec": timestamp_sec,
+            "url": f"https://www.youtube.com/watch?v={video_id}&t={timestamp_sec}s"
+        })
+        ids.append(f"{video_id}_{timestamp_sec}")
+
+    if chunks:
+        collection.upsert(documents=chunks, metadatas=metadatas, ids=ids)
+        print(f"✅ Indexé : {title[:55]}... ({len(chunks)} blocs)")
+
+if __name__ == "__main__":
+    print(f"🚀 Reprise de l'indexation ({collection.count()} blocs déjà en base)...")
+    for idx, v in enumerate(NOTEBOOK_VIDEOS, 1):
+        if is_already_indexed(v["id"]):
+            print(f"⏭️  [{idx}/{len(NOTEBOOK_VIDEOS)}] Déjà indexé : {v['title'][:50]}...")
+            continue
+
+        print(f"📥 [{idx}/{len(NOTEBOOK_VIDEOS)}] Téléchargement de {v['id']}...")
+        index_video(v["id"], v["title"])
+
+        # Pause de 2.5 à 4.5 secondes pour éviter le rate-limit YouTube
+        time.sleep(random.uniform(2.5, 4.5))
+
+    print(f"\n🎉 Terminé ! Total de segments dans ChromaDB : {collection.count()}")

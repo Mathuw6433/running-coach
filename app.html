@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8"><title>Shadow Coach</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com/3.4.17"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/htm@3.1.1/dist/htm.umd.js"></script>
+<style>
+:root{--bg:#f3f4ef;--pn:#fff;--pn2:#eceee6;--ln:#d9dccf;--tx:#14170f;--mut:#677060;--ac:#4f9a00;--acT:#fff;--wr:#e0710b;--rd:#d63a3a;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#0b0d09;--pn:#14170f;--pn2:#1c2016;--ln:#2a3022;--tx:#eef2e6;--mut:#8f9a82;--ac:#c6ff3d;--acT:#0b0d09;--wr:#ffa23d;--rd:#ff6161}}
+html,body{height:100%;margin:0}body{background:var(--bg);color:var(--tx);font-family:Inter,system-ui,sans-serif}
+.hd{font-family:'Barlow Condensed',Impact,sans-serif;text-transform:uppercase;letter-spacing:.02em;font-weight:800}
+.card{background:var(--pn);border:1px solid var(--ln);border-radius:16px;padding:16px}
+.btn{background:var(--ac);color:var(--acT);font-weight:600;border-radius:10px;padding:8px 14px;font-size:14px}
+.btn2{border:1px solid var(--ln);border-radius:10px;padding:8px 14px;font-size:14px;background:var(--pn2)}
+.inp{background:var(--pn2);border:1px solid var(--ln);border-radius:10px;padding:8px 12px;width:100%;color:var(--tx)}
+.mut{color:var(--mut)}.ac{color:var(--ac)}.nav{display:flex;gap:10px;align-items:center;padding:10px 12px;border-radius:12px;width:100%;text-align:left;color:var(--mut)}
+.nav.on{background:var(--ac);color:var(--acT);font-weight:600}.badge{font:500 11px ui-monospace,monospace;background:var(--pn2);border:1px solid var(--ln);color:var(--ac);padding:2px 8px;border-radius:99px}
+.bar{height:8px;background:var(--pn2);border-radius:9px;overflow:hidden}.bar>i{display:block;height:100%;background:var(--ac)}
+.md li{margin-left:18px;list-style:disc}.tw{overflow-x:auto}table{width:100%;font-size:13px;border-collapse:collapse}td,th{padding:6px 8px;text-align:left;border-bottom:1px solid var(--ln);white-space:nowrap}
+:root{--bg:#f3f4fa;--pn:rgba(255,255,255,.72);--pn2:rgba(20,24,40,.05);--ln:rgba(20,24,40,.09);--tx:#12141c;--mut:#6a7085;--ac:#5b3df5;--ac2:#0aa5c0;--acT:#fff;--g:linear-gradient(120deg,#6d4cff,#08b6d4);--glow:0 8px 30px -10px #6d4cff88}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#07080d;--pn:rgba(255,255,255,.045);--pn2:rgba(255,255,255,.06);--ln:rgba(255,255,255,.09);--tx:#f1f3fa;--mut:#8a90a6;--ac:#c4ff4d;--ac2:#22e5c4;--acT:#07080d;--g:linear-gradient(120deg,#c4ff4d,#22e5c4);--glow:0 8px 40px -10px #c4ff4d77}}
+body{background:radial-gradient(900px 520px at 8% -10%,color-mix(in srgb,var(--ac) 18%,transparent),transparent),radial-gradient(800px 500px at 100% 0,color-mix(in srgb,var(--ac2) 15%,transparent),transparent),var(--bg);background-attachment:fixed}
+.hd{font-family:'Space Grotesk',sans-serif;text-transform:none;letter-spacing:-.035em;font-weight:700}
+.hd.ac,.hd .ac{background:var(--g);-webkit-background-clip:text;background-clip:text;color:transparent}
+.card{background:var(--pn);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);border-radius:22px;box-shadow:inset 0 1px 0 #ffffff12;transition:border-color .25s,transform .25s}.card:hover{border-color:color-mix(in srgb,var(--ac) 45%,var(--ln))}button.card:hover{transform:translateY(-3px)}
+.btn{background:var(--g);border-radius:999px;padding:9px 18px;box-shadow:var(--glow);transition:.2s}.btn:hover{transform:translateY(-1px) scale(1.03)}
+.btn2{border-radius:999px;background:var(--pn);transition:.2s}.btn2:hover{border-color:var(--ac)}
+.inp{border-radius:14px}.inp:focus{outline:2px solid var(--ac);border-color:transparent}
+.nav{border-radius:14px;transition:.2s}.nav:hover{background:var(--pn2);color:var(--tx)}.nav.on{background:var(--g);box-shadow:var(--glow);color:var(--acT)}
+aside{-webkit-backdrop-filter:blur(24px);backdrop-filter:blur(24px)}.logo{width:42px;height:42px;border-radius:14px;background:var(--g);color:var(--acT);display:grid;place-items:center;font-size:20px;box-shadow:var(--glow)}
+.bar{height:7px}.bar>i{background:var(--g);box-shadow:0 0 12px color-mix(in srgb,var(--ac) 60%,transparent);border-radius:9px}
+.badge{border-radius:99px;background:color-mix(in srgb,var(--ac) 12%,transparent)}
+polyline{filter:drop-shadow(0 0 6px color-mix(in srgb,var(--ac) 50%,transparent));stroke-linejoin:round}
+tr:hover td{background:var(--pn2)}main>*{animation:up .45s ease both}@keyframes up{from{opacity:0;transform:translateY(10px)}}
+::-webkit-scrollbar{width:8px}::-webkit-scrollbar-thumb{background:var(--ln);border-radius:9px}
+.tip{position:relative}.tip:hover{z-index:20}.tt{display:none;position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);width:230px;max-width:70vw;padding:10px 12px;border-radius:12px;font:400 12px/1.4 Inter,sans-serif;letter-spacing:0;text-transform:none;text-align:left;background:var(--tx);color:var(--bg);pointer-events:none;box-shadow:0 10px 30px #0006}.tip:hover>.tt{display:block}
+</style></head><body><div id="root" style="height:100%"></div>
+<script>
+const {useState,useEffect,useRef,useContext}=React,h=htm.bind(React.createElement);
+const TABS=[["🏠","Aujourd’hui"],["💬","AI Coach"],["📅","Agenda et Séances"],["🍝","Nutrition"],["💧","Hydratation"],["👤","Profil"],["📊","Statistiques"],["⚙️","Paramètres"]];
+const SUGG=["Analyse ma fatigue actuelle","Débriefe ma dernière séance de seuil","Que conseille RunWise sur le volume ?","Programme ma séance de demain"];
+const mmss=s=>Math.floor(s/60)+":"+String(Math.round(s%60)).padStart(2,"0");
+const day=n=>{const d=new Date();d.setDate(d.getDate()+n);return d};
+const iso=d=>d.toISOString().slice(0,10);
+const EVENTS=[[1,"Séance seuil 3×10’","Warmup 15’ facile + 5 lignes droites","3×10’ @ 3:55/km, récup 2’ trot","Retour au calme 10’",16,78],[3,"Sortie longue","Warmup 10’","1h30 progressive 4:50 → 4:25/km","Cooldown 5’",24,95],[5,"VMA 10×400","Warmup 20’ + gammes","10×400 m @ 3:10/km, récup 200 m trot","Cooldown 10’",12,70]].map((e,i)=>({id:i,date:iso(day(e[0])),name:e[1],warmup:e[2],main:e[3],cooldown:e[4],km:e[5],load:e[6]}));
+const ACTS=[[-1,"Seuil 3×10’",15.2,"4:12",152,176,82],[-3,"Footing récup",9.1,"5:20",138,151,31],[-5,"VMA 8×1000",14.0,"4:05",158,188,96],[-7,"Sortie longue",24.3,"4:48",146,165,112]].map((a,i)=>({id:"a"+i,date:iso(day(a[0])),name:a[1],km:a[2],pace:a[3],hr:a[4],hrmax:a[5],load:a[6]}));
+const LAPS=Array.from({length:15},(_,i)=>i%2?{type:"RECOVERY",label:"Récup",m:400,s:150,pace:"6:15",hr:150+i,max:160,cad:162}:{type:"WORK",label:"Rép "+(i/2+1|0)+1,m:1000,s:245-i,pace:"4:0"+(5-(i%5)),hr:170+i%4,max:182,cad:184});
+const VIDS=["Construire son volume sans se blesser","Seuil : le guide complet","VMA : séances clés","Nutrition de l’effort long","Gut-training et glucides","Récupération et sommeil","Préparer un 10 km","Polarisé vs pyramidal","Renforcement du coureur","Gestion de la fatigue","Allure marathon","Hydratation et sodium"].map((t,i)=>({video_id:"M7lc1UVf-VE",title:t,ep:i+1}));
+const demoReply=q=>({answer:"**Analyse (mode démo)**\n\nTon TSB est à **−8** : fatigue modérée, compatible avec une séance qualitative demain.\n\n- Séance demain : 5×1000 m à 3:50/km, récup 2’ trot\n- Nutrition : vise 8 g/kg de glucides par jour, soit 60 g/h pendant la séance\n- Hydratation : bois 500 ml d’eau avec électrolytes avant la séance\n- Sommeil : cible 8 h\n\nQuestion reçue : « "+q+" »",tools_used:["get_intervals_wellness","search_runwise_knowledge"],video_references:[{video_id:"M7lc1UVf-VE",start_sec:42,title:"RunWise — Gestion du volume"}]});
+const md=t=>t.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/\*\*(.+?)\*\*/g,"<b>$1</b>").split("\n").map(l=>/^[-•] /.test(l)?`<li>${l.slice(2)}</li>`:l?`<p class="mb-2">${l}</p>`:"").join("");
+const Card=p=>h`<div class="card ${p.c||""}">${p.children}</div>`;
+const Title=p=>h`<h2 class="hd text-4xl md:text-5xl mb-6">${p.children}</h2>`;
+function Chart({lines,h:H=140}){const all=lines.flatMap(l=>l.d),mn=Math.min(...all),mx=Math.max(...all),n=lines[0].d.length;
+ const P=l=>l.d.map((v,i)=>`${(i/(n-1))*600},${H-6-((v-mn)/(mx-mn||1))*(H-12)}`).join(" ");
+ return h`<svg viewBox="0 0 600 ${H}" class="w-full" style=${{height:H}}>${lines.map(l=>h`<polyline key=${l.n} fill="none" stroke=${l.c} stroke-width="2.5" points=${P(l)}/>`)}</svg>`}
+
+function Coach({api,demo,prefill,clear}){
+ const X=useContext(Ctx),{msgs,setM}=X,[v,setV]=useState(""),[busy,setB]=useState(false),[lib,setL]=useState(false),[q,setQ]=useState(""),[play,setP]=useState({}),end=useRef();
+ const sid=useRef("s"+Date.now());
+ useEffect(()=>{end.current&&end.current.scrollIntoView({behavior:"smooth"})},[msgs,busy]);
+ async function send(t){t=(t||v).trim();if(!t||busy)return;setV("");setM(m=>[...m,{r:"u",t}]);setB(true);
+  let r=await api("/api/chat",{method:"POST",body:JSON.stringify({message:t,session_id:sid.current})});
+  if(!r)r=demoReply(t);setM(m=>[...m,{r:"a",...r}]);setB(false)}
+ useEffect(()=>{if(prefill){send(prefill);clear()}},[prefill]);
+ const vids=VIDS.filter(x=>x.title.toLowerCase().includes(q.toLowerCase()));
+ return h`<div class="h-full flex flex-col relative">
+  <div class="flex justify-end p-3"><button class="btn2" onClick=${()=>setL(true)}>🎞️ Bibliothèque RunWise</button></div>
+  <div class="flex-1 overflow-y-auto px-4"><div class="max-w-3xl mx-auto pb-6">
+   ${!msgs.length&&h`<div class="text-center pt-8 md:pt-16"><div class="text-5xl mb-3">🏃</div><h1 class="hd text-5xl md:text-6xl">Prêt à <span class="ac">performer</span> ?</h1>
+    <p class="mut mt-3 mb-8">Ton coach IA connecté à Intervals.icu et à la base RunWise.</p>
+    <div class="grid sm:grid-cols-2 gap-3 text-left">${SUGG.map(s=>h`<button key=${s} onClick=${()=>send(s)} class="card hover:opacity-80 font-medium">${s} <span class="ac">→</span></button>`)}</div></div>`}
+   ${msgs.map((m,i)=>m.r==="u"?h`<div key=${i} class="flex justify-end my-3"><div class="btn max-w-[85%]" style=${{fontWeight:500}}>${m.t}</div></div>`:
+    h`<div key=${i} class="my-4"><div class="flex flex-wrap gap-1 mb-2">${(m.tools_used||[]).map(t=>h`<span key=${t} class="badge">⚙ ${t}</span>`)}</div>
+     ${(m.answer||"").split("\n").filter(Boolean).map((l,k)=>{const c=/^[-•] /.test(l)?cat(l):null;return h`<div key=${k} class="flex items-start gap-2 mb-1"><div class="md flex-1" dangerouslySetInnerHTML=${{__html:md(l)}}/>${c&&h`<button class="badge shrink-0" onClick=${()=>X.add(c,l.replace(/^[-•] /,""))}>＋ ${CL[c]}</button>`}</div>`})}
+     ${(m.video_references||[]).map((v,j)=>h`<${Card} c="mt-3 max-w-md"><div class="text-sm font-semibold mb-2">▶ ${v.title||"Extrait RunWise"} · à ${mmss(v.start_sec||0)}</div>
+      ${play[i+"-"+j]?h`<iframe class="w-full rounded-lg" style=${{aspectRatio:"16/9"}} src=${`https://www.youtube.com/embed/${v.video_id}?start=${v.start_sec||0}&autoplay=1`} allow="autoplay; encrypted-media" allowFullScreen/>`:
+      h`<button class="btn w-full" onClick=${()=>setP({...play,[i+"-"+j]:1})}>Lire l’extrait</button>`}<//>`)}</div>`)}
+   ${busy&&h`<div class="mut animate-pulse">Le coach réfléchit…</div>`}<div ref=${end}/></div></div>
+  <div class="p-3"><div class="max-w-3xl mx-auto flex gap-2 card" style=${{padding:8,borderRadius:99}}>
+   <input class="flex-1 bg-transparent outline-none px-3" placeholder="Pose ta question au coach…" value=${v} onChange=${e=>setV(e.target.value)} onKeyDown=${e=>e.key==="Enter"&&send()}/>
+   <button class="btn" style=${{borderRadius:99}} onClick=${()=>send()}>Envoyer ➤</button></div></div>
+  ${lib&&h`<div class="absolute inset-0 z-20 flex justify-end" style=${{background:"#0008"}} onClick=${()=>setL(false)}><div class="w-full max-w-md h-full overflow-y-auto p-4" style=${{background:"var(--bg)"}} onClick=${e=>e.stopPropagation()}>
+   <div class="flex justify-between mb-3"><h3 class="hd text-2xl">Bibliothèque · 52 vidéos</h3><button onClick=${()=>setL(false)}>✕</button></div>
+   <input class="inp mb-3" placeholder="Rechercher…" value=${q} onChange=${e=>setQ(e.target.value)}/>
+   ${vids.map(x=>h`<${Card} c="mb-2" key=${x.ep}><div class="mut text-xs">Épisode ${x.ep}</div><div class="font-medium">${x.title}</div><//>`)}</div></div>`}</div>`}
+
+function Agenda({go}){
+ const X=useContext(Ctx),[sel,setS]=useState(null),[pick,setPick]=useState(null);
+ const gcal=e=>{const d=e.date.replace(/-/g,"");return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(e.name)}&dates=${d}T180000/${d}T193000&details=${encodeURIComponent(e.warmup+" | "+e.main+" | "+e.cooldown)}`};
+ const ics=()=>{const b="BEGIN:VCALENDAR\nVERSION:2.0\n"+X.ev.map(e=>`BEGIN:VEVENT\nUID:${e.id}@shadow\nDTSTART:${e.date.replace(/-/g,"")}T180000\nSUMMARY:${e.name}\nEND:VEVENT`).join("\n")+"\nEND:VCALENDAR";const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([b],{type:"text/calendar"}));a.download="shadow-coach.ics";a.click()};
+ if(sel){const a=sel,tot=LAPS.reduce((s,l)=>s+l.s,0);
+  const M=[["Distance",a.km+" km"],["Durée","1:04:12"],["Allure",a.pace+"/km"],["GAP",a.pace+"/km"],["FC moy/max",a.hr+"/"+a.hrmax],["Cadence","178 spm"],["Load",a.load],["TRIMP",96],["Intensité","92 %"],["Découplage","2,8 %"],["Efficacité","1,74"],["Dénivelé","84 m"],["Calories","1 020"]];
+  return h`<div><button class="btn2 mb-4" onClick=${()=>setS(null)}>← Retour</button><${Title}>${a.name} · ${a.date}<//>
+  <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2 mb-4">${M.map(m=>h`<${Card} key=${m[0]} c="!p-3"><div class="mut text-xs">${m[0]}</div><div class="hd text-2xl">${m[1]}</div><//>`)}</div>
+  <${Card} c="mb-4"><div class="font-semibold mb-2">Tours</div><div class="flex h-14 gap-px">${LAPS.map((l,i)=>h`<div key=${i} title=${l.label} style=${{flex:l.s/tot,background:l.type==="WORK"?"var(--ac)":"var(--pn2)",borderRadius:4}}/>`)}</div><//>
+  <${Card} c="mb-4 tw"><table><thead><tr>${["#","Type","Label","Dist (m)","Durée","Allure","FC moy","FC max","Cad"].map(x=>h`<th key=${x}>${x}</th>`)}</tr></thead><tbody>${LAPS.map((l,i)=>h`<tr key=${i}><td>${i+1}</td><td>${l.type}</td><td>${l.label}</td><td>${l.m}</td><td>${mmss(l.s)}</td><td>${l.pace}</td><td>${l.hr}</td><td>${l.max}</td><td>${l.cad}</td></tr>`)}</tbody></table><//>
+  <${Card} c="mb-4"><div class="font-semibold mb-2">Zones FC</div>${[["Z1",8],["Z2",22],["Z3",18],["Z4",42],["Z5",10]].map(z=>h`<div key=${z[0]} class="flex items-center gap-2 mb-1 text-sm"><span class="w-8">${z[0]}</span><div class="bar flex-1"><i style=${{width:z[1]+"%"}}/></div><span class="w-10 mut">${z[1]}%</span></div>`)}<//>
+  <button class="btn" onClick=${()=>go("Débriefe la séance « "+a.name+" » du "+a.date)}>🤖 Débriefer cette séance dans AI Coach</button></div>`}
+ return h`<div><${Title}>Agenda & Séances<//>
+ <div class="flex flex-wrap justify-between items-center mb-3"><h3 class="font-semibold">Calendrier · 2 semaines passées & 2 à venir</h3><button class="btn" onClick=${ics}>📥 Exporter tout l’agenda (.ics)</button></div>
+ <div class="mb-8"><${Cal} ev=${X.ev} acts=${X.done} pick=${pick} onEv=${setPick} onAct=${setS}/>
+ ${pick&&h`<${Card} c="mt-4"><div class="flex justify-between"><div><div class="mut text-xs">${pick.date}</div><div class="hd text-2xl">${pick.name}</div></div><button onClick=${()=>setPick(null)}>✕</button></div><div class="text-sm space-y-1 mt-2">${pick.warmup&&h`<div><b class="ac">Warmup</b> ${pick.warmup}</div>`}<div><b class="ac">Main Set</b> ${pick.main}</div>${pick.cooldown&&h`<div><b class="ac">Cooldown</b> ${pick.cooldown}</div>`}</div><div class="mut text-sm mt-2">${pick.km} km · charge ${pick.load}</div><div class="flex flex-wrap gap-2 mt-3"><a class="btn2" target="_blank" href=${gcal(pick)}>📅 Ajouter à Google Agenda</a>${pick.ia&&h`<input type="date" class="inp !w-auto" value=${pick.date} onChange=${e=>{X.setEv(X.ev.map(x=>x.id===pick.id?{...x,date:e.target.value}:x));setPick({...pick,date:e.target.value})}}/>`}<button class="btn2" onClick=${()=>{X.setEv(X.ev.filter(x=>x.id!==pick.id));setPick(null)}}>🗑 Supprimer</button></div><//>`}</div>
+ <h3 class="font-semibold mb-3">Dernières séances synchronisées</h3>
+ <${Card} c="tw"><table><thead><tr>${["Date","Nom","km","Allure","FC moy/max","Load"].map(x=>h`<th key=${x}>${x}</th>`)}</tr></thead><tbody>${X.done.map(a=>h`<tr key=${a.id} class="cursor-pointer" onClick=${()=>setS(a)}><td>${a.date}</td><td class="font-medium">${a.name}</td><td>${a.km}</td><td>${a.pace}/km</td><td>${a.hr}/${a.hrmax}</td><td class="ac">${a.load}</td></tr>`)}</tbody></table><//></div>`}
+
+const R=(i,k)=>Math.abs(Math.sin(i*12.9898+k*78.233)*43758.5453%1);
+const Kpi=k=>h`<div class="card !p-3 tip" key=${k[0]}><div class="tt">${TIP[k[0]]||TIP[k[0].replace(" 2026","")]||""}</div><div class="mut text-xs">${k[0]} ⓘ</div><div class="hd text-2xl">${k[1]}<span class="text-xs mut font-normal"> ${k[2]||""}</span></div>${k[3]&&h`<div class="text-xs" style=${{color:k[3][0]==="−"?"var(--wr)":"var(--ac)"}}>${k[3]}</div>`}</div>`;
+const Grp=(t,it)=>h`<section class="mb-8" key=${t}><h3 class="hd text-2xl mb-3">${t}</h3><div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">${it.map(k=>Kpi(k))}</div></section>`;
+function Bars({d,H=120,lab}){const mx=Math.max(...d),w=600/d.length;return h`<svg viewBox="0 0 600 ${H+18}" class="w-full"><defs><linearGradient id="gg" x1="0" x2="0" y1="0" y2="1"><stop offset="0" style=${{stopColor:"var(--ac)"}}/><stop offset="1" style=${{stopColor:"var(--ac2)",stopOpacity:.4}}/></linearGradient></defs>${d.map((v,i)=>h`<g key=${i}><rect x=${i*w+3} y=${H-v/mx*H} width=${w-6} height=${v/mx*H} rx="5" fill="url(#gg)"/>${lab&&h`<text x=${i*w+w/2} y=${H+14} text-anchor="middle" font-size="10" fill="var(--mut)">${lab[i]}</text>`}</g>`)}</svg>`}
+const Heat=()=>h`<svg viewBox="0 0 340 140" class="w-full">${Array.from({length:119},(_,i)=>{const v=R(i,9);return h`<rect key=${i} x=${(i/7|0)*20} y=${(i%7)*20} width="16" height="16" rx="4" fill="var(--ac)" opacity=${v>.3?(.25+v*.75).toFixed(2):.08}/>`})}</svg>`;
+const ZB=(t,z)=>h`<${Card} c="mb-3" key=${t}><div class="font-semibold mb-2">${t}</div>${z.map(x=>h`<div key=${x[0]} class="flex items-center gap-2 mb-1 text-sm"><span class="w-8">${x[0]}</span><div class="bar flex-1"><i style=${{width:x[1]*1.6+"%"}}/></div><span class="w-10 mut">${x[1]}%</span></div>`)}<//>`;
+function Stats(){
+ const [p,setP]=useState(28),N=90,ser=(b,a,k,t=0)=>Array.from({length:N},(_,i)=>b+t*i/N+Math.sin(i/4+k)*a+(R(i,k)-.5)*a);
+ const hrv=ser(78,8,1,6),rhr=ser(46,2,2,-2),sl=ser(7.6,.6,3),ctl=ser(55,2,4,10),atl=ser(55,9,5,6),tsb=ctl.map((c,i)=>c-atl[i]),cut=a=>a.slice(-p),wk=Array.from({length:12},(_,i)=>Math.round(38+i*2.2+R(i,7)*18)),m=p/28;
+ const BE=[["400 m","1:09","2:53","sept. 2026"],["1 km","2:49","2:49","août 2026"],["1 mile","4:36","2:51","août 2026"],["3 km","9:52","3:17","oct. 2026"],["5 km","16:48","3:22","oct. 2026"],["10 km","35:20","3:32","juin 2026"],["Semi","1:17:40","3:41","avr. 2026"]];
+ return h`<div><div class="flex flex-wrap items-center justify-between gap-3"><${Title}>Statistiques<//><div class="card !p-1 !rounded-full flex gap-1 mb-6">${[7,28,90].map(d=>h`<button key=${d} class=${p===d?"btn":"px-4 py-2 mut"} onClick=${()=>setP(d)}>${d} j</button>`)}</div></div>
+ ${Grp("Forme & charge",[["CTL (Fitness)",ctl[N-1].toFixed(0),"","+3,1 / 7 j"],["ATL (Fatigue)",atl[N-1].toFixed(0),"","+6,0 / 7 j"],["TSB (Forme)",tsb[N-1].toFixed(0),"","−4 / 7 j"],["Ramp rate","+4,2","/sem"],["ACWR","1,14","","zone optimale"],["Monotonie","1,6"],["Strain","412"],["Charge 7 j","486"],["Charge 28 j","1 930"],["Statut","Productif"]])}
+ <${Card} c="mb-8"><div class="flex flex-wrap gap-4 text-sm mb-2"><span class="ac">● CTL</span><span style=${{color:"var(--wr)"}}>● ATL</span><span class="mut">● TSB</span></div><${Chart} h=${160} lines=${[{n:"c",d:cut(ctl),c:"var(--ac)"},{n:"a",d:cut(atl),c:"var(--wr)"},{n:"t",d:cut(tsb),c:"var(--mut)"}]}/><//>
+ <section class="mb-8"><h3 class="hd text-2xl mb-3">Vue d’ensemble</h3><div class="grid grid-cols-2 lg:grid-cols-4 gap-2 mb-3">${[["Readiness",78,"var(--ac)"],["Score sommeil",86,"var(--ac2)"],["Hydratation",82,"var(--wr)"],["Régularité",91,"#8b5cf6"]].map(g=>h`<${Gauge} key=${g[0]} l=${g[0]} v=${g[1]} c=${g[2]}/>`)}</div>
+ <div class="grid lg:grid-cols-3 gap-3"><${Card} c="tip"><div class="tt">${TIP["Zone de forme"]}</div><div class="font-semibold mb-4">Zone de forme (TSB ${tsb[N-1].toFixed(0)})</div><${ZoneBar} v=${tsb[N-1]}/><//>
+ <${Card} c="tip"><div class="tt">${TIP["Profil athlète"]}</div><div class="font-semibold mb-1">Profil athlète</div><${Radar} d=${[["Endurance",88],["Vitesse",76],["Seuil",84],["Économie",72],["Récup",80],["Régularité",91]]}/><//>
+ <${Card} c="tip"><div class="tt">${TIP["Polarisation"]}</div><div class="font-semibold mb-1">Polarisation</div><div class="flex items-center gap-4"><${Donut} d=${[["Bas",70],["Moyen",12],["Haut",18]]}/><div class="text-sm space-y-1"><div class="ac">● Bas 70 %</div><div style=${{color:"var(--wr)"}}>● Moyen 12 %</div><div style=${{color:"var(--ac2)"}}>● Haut 18 %</div></div></div><//></div></section>
+ ${Grp("Récupération & bien-être",[["HRV (rMSSD)",Math.round(hrv[N-1]),"ms","+5 vs base"],["HRV moy. 7 j","81","ms"],["FC repos",Math.round(rhr[N-1]),"bpm","−1"],["Sommeil","7 h 42"],["Score sommeil","86","/100"],["SpO₂","97","%"],["Poids","68,2","kg"],["Masse grasse","9,8","%"],["Readiness","78","/100"],["Fatigue","2","/4"],["Stress","1","/4"],["Humeur","3","/4"],["Douleurs","1","/4"],["Pas","11 240"],["VO₂max","66","ml/kg/min"]])}
+ <div class="grid lg:grid-cols-2 gap-3 mb-8"><${Card}><div class="font-semibold mb-2">HRV & FC repos</div><${Chart} lines=${[{n:"h",d:cut(hrv),c:"var(--ac)"},{n:"r",d:cut(rhr).map(v=>v+30),c:"var(--wr)"}]}/><//><${Card}><div class="font-semibold mb-2">Sommeil (h)</div><${Bars} d=${cut(sl).filter((_,i,a)=>i%Math.ceil(a.length/30)===0)}/><//></div>
+ ${Grp("Volume · "+p+" derniers jours",[["Distance",Math.round(212*m),"km"],["Durée",Math.round(17.5*m),"h"],["Séances",Math.round(21*m)],["Dénivelé",Math.round(1850*m),"m"],["Calories",Math.round(15200*m)],["Allure moy.","4:31","/km"],["FC moy.","148","bpm"],["Jours actifs",Math.min(p,Math.round(24*m))],["Série en cours","6","jours"],["Plus longue sortie","24,3","km"]])}
+ <div class="grid lg:grid-cols-2 gap-3 mb-8"><${Card}><div class="font-semibold mb-2">Distance hebdo (12 sem.)</div><${Bars} d=${wk} lab=${wk.map((_,i)=>"S"+(i+1))}/><//><${Card}><div class="font-semibold mb-2">Régularité (17 semaines)</div><${Heat}/><//></div>
+ <section class="mb-8"><h3 class="hd text-2xl mb-3">Distribution d’intensité</h3><div class="grid lg:grid-cols-3 gap-3">${ZB("Zones FC",[["Z1",18],["Z2",52],["Z3",12],["Z4",14],["Z5",4]])}${ZB("Zones d’allure",[["Z1",22],["Z2",47],["Z3",13],["Z4",13],["Z5",5]])}${ZB("Polarisation (3 zones)",[["Bas",70],["Moy",12],["Haut",18]])}</div></section>
+ ${Grp("Performance & physiologie",[["Allure seuil","3:52","/km"],["LTHR","174","bpm"],["VMA","19,5","km/h"],["Vitesse critique","5,02","m/s"],["D′","192","m"],["CP / eFTP","338","W"],["W′","18,4","kJ"],["Puissance moy.","268","W"],["Puissance norm.","281","W"],["W/kg","4,9"]])}
+ <div class="grid lg:grid-cols-2 gap-3 mb-8"><${Card} c="tw"><div class="font-semibold mb-2">Meilleurs efforts (pace curve)</div><table><thead><tr>${["Distance","Temps","Allure","Date"].map(x=>h`<th key=${x}>${x}</th>`)}</tr></thead><tbody>${BE.map(b=>h`<tr key=${b[0]}><td>${b[0]}</td><td class="ac font-semibold">${b[1]}</td><td>${b[2]}</td><td class="mut">${b[3]}</td></tr>`)}</tbody></table><//>
+ <${Card}><div class="font-semibold mb-2">Prédictions de course</div><div class="grid grid-cols-2 gap-2">${[["5 km","16:44"],["10 km","34:55"],["Semi","1:17:10"],["Marathon","2:42:30"]].map(x=>h`<div key=${x[0]} class="card !p-3 text-center"><div class="mut text-xs">${x[0]}</div><div class="hd text-2xl ac">${x[1]}</div></div>`)}</div><div class="font-semibold mt-4 mb-2">Chaussures</div>${[["Vaporfly 3",412,600],["Pegasus 41",288,700]].map(s=>h`<div key=${s[0]} class="mb-2 text-sm"><div class="flex justify-between"><span>${s[0]}</span><span class="mut">${s[1]} / ${s[2]} km</span></div><div class="bar"><i style=${{width:s[1]/s[2]*100+"%"}}/></div></div>`)}<//></div>
+ ${Grp("Efficacité & biomécanique",[["Facteur d’efficacité","1,74","","+0,03"],["Découplage moy.","2,8","%"],["Cadence","178","spm"],["Longueur de foulée","1,18","m"],["Temps de contact","214","ms"],["Oscillation verticale","8,1","cm"],["Ratio vertical","6,9","%"],["Équilibre G/D","49,6/50,4"],["GAP moy.","4:24","/km"],["Dérive FC","+2,1","%"]])}
+ <div class="grid lg:grid-cols-3 gap-3 mb-8"><${Card} c="tip"><div class="tt">${TIP["Facteur d’efficacité"]}</div><div class="font-semibold mb-2">Facteur d’efficacité</div><${Chart} lines=${[{n:"e",d:cut(ser(1.7,.05,6,.06)),c:"var(--ac)"}]}/><//>
+ <${Card} c="tip"><div class="tt">${TIP["Découplage moy."]}</div><div class="font-semibold mb-2">Découplage par séance (%)</div><${Bars} d=${Array.from({length:14},(_,i)=>+(1.5+R(i,21)*5).toFixed(1))}/><//>
+ <${Card} c="tip"><div class="tt">Courbe d’allure : vitesse maximale tenue selon la durée de l’effort.</div><div class="font-semibold mb-2">Courbe d’allure (m/s)</div><${Chart} lines=${[{n:"p",d:[6.0,5.9,5.6,5.4,5.1,4.9,4.7,4.5,4.3,4.1],c:"var(--ac2)"}]}/><//></div>
+ ${Grp("Totaux & records de l’année",[["Distance 2026","2 480","km"],["Durée 2026","193","h"],["Dénivelé 2026","19 400","m"],["Séances 2026","246"],["Semaine record","92","km"],["Charge max","148"],["Plus long run","32,1","km"],["Courses","11"],["Podiums","4"],["CTL max","68"]])}
+ <p class="mut text-xs">Données de démonstration : elles seront remplacées par <code>/api/intervals/dashboard</code> une fois le backend connecté.</p></div>`}
+
+const Ctx=React.createContext({});
+const TIP={"CTL (Fitness)":"Charge chronique : moyenne pondérée de ta charge sur ~42 jours. Plus elle est haute, plus ta base est solide.","ATL (Fatigue)":"Charge aiguë : moyenne de la charge sur ~7 jours. Reflète la fatigue récente.","TSB (Forme)":"Training Stress Balance = CTL − ATL. Négatif : fatigue ; 0 à +10 : fraîcheur idéale pour performer.","Ramp rate":"Vitesse de progression du CTL par semaine. Au-delà de +5/sem, le risque de blessure augmente.","ACWR":"Rapport charge aiguë / chronique. Zone sûre : 0,8 à 1,3.","Monotonie":"Variabilité de la charge d’un jour à l’autre. Au-delà de 2, l’entraînement est trop uniforme.","Strain":"Charge hebdo × monotonie : stress cumulé de la semaine.","Charge 7 j":"Somme de la charge d’entraînement sur 7 jours.","Charge 28 j":"Somme de la charge d’entraînement sur 28 jours.","Statut":"Lecture globale de ta dynamique de forme (productif, maintien, surcharge…).","HRV (rMSSD)":"Variabilité de la fréquence cardiaque au repos. Haute = bonne récupération nerveuse.","HRV moy. 7 j":"Moyenne glissante de la HRV, plus fiable que la valeur du jour.","FC repos":"Fréquence cardiaque au repos. +5 bpm ou plus peut signaler fatigue ou maladie.","Sommeil":"Durée de la dernière nuit.","Score sommeil":"Qualité du sommeil sur 100 (durée, phases, réveils).","SpO₂":"Saturation en oxygène du sang ; normale ≥ 95 %.","Poids":"Poids corporel, utile pour le W/kg et les besoins nutritionnels.","Masse grasse":"Pourcentage de masse grasse estimé.","Readiness":"Score de disponibilité du jour combinant HRV, sommeil, FC repos et charge.","Fatigue":"Fatigue ressentie (1 = frais, 4 = épuisé).","Stress":"Niveau de stress ressenti (1 à 4).","Humeur":"Humeur déclarée (4 = excellente).","Douleurs":"Douleurs musculaires ou articulaires (1 à 4).","Pas":"Pas quotidiens : activité hors entraînement.","VO₂max":"Consommation maximale d’oxygène estimée : ton plafond aérobie.","Distance":"Distance parcourue sur la période.","Durée":"Temps d’entraînement cumulé.","Séances":"Nombre d’activités enregistrées.","Dénivelé":"Dénivelé positif cumulé.","Calories":"Dépense énergétique estimée des séances.","Allure moy.":"Allure moyenne sur la période.","FC moy.":"Fréquence cardiaque moyenne des séances.","Jours actifs":"Jours avec au moins une séance.","Série en cours":"Jours d’entraînement consécutifs.","Plus longue sortie":"Plus grande distance sur une séance.","Allure seuil":"Allure maximale tenable ~1 h : référence des séances de seuil.","LTHR":"Fréquence cardiaque au seuil lactique.","VMA":"Vitesse maximale aérobie.","Vitesse critique":"Vitesse maximale soutenable longtemps sans entamer la réserve anaérobie.","D′":"Réserve de distance anaérobie au-dessus de la vitesse critique.","CP / eFTP":"Puissance critique / puissance au seuil estimée.","W′":"Capacité de travail anaérobie au-dessus de CP.","Puissance moy.":"Puissance moyenne de course.","Puissance norm.":"Puissance normalisée : coût physiologique d’un effort variable.","W/kg":"Puissance rapportée au poids de corps.","Facteur d’efficacité":"Vitesse (ou puissance) ÷ FC. Plus il monte, meilleure est ton efficacité aérobie.","Découplage moy.":"Dérive FC vs allure entre début et fin de séance. Sous 5 % : bonne base aérobie.","Cadence":"Nombre de pas par minute.","Longueur de foulée":"Distance parcourue à chaque foulée.","Temps de contact":"Durée du contact au sol à chaque appui.","Oscillation verticale":"Rebond vertical du centre de masse.","Ratio vertical":"Oscillation ÷ longueur de foulée. Plus bas = plus économe.","Équilibre G/D":"Répartition du temps de contact entre pied gauche et droit.","GAP moy.":"Grade Adjusted Pace : allure corrigée du dénivelé.","Dérive FC":"Hausse de la FC à allure constante au cours de la séance.","Semaine record":"Plus gros kilométrage hebdomadaire de l’année.","Charge max":"Charge la plus élevée sur une séance.","Plus long run":"Plus longue sortie de l’année.","Courses":"Compétitions courues cette année.","Podiums":"Podiums obtenus cette année.","CTL max":"Pic de Fitness de l’année.","Hydratation":"Part de ton objectif hydrique du jour atteinte.","Régularité":"Part des semaines où tu atteins ta fréquence d’entraînement cible.","Zone de forme":"Position de ton TSB : surcharge, optimal, neutre ou fraîcheur.","Profil athlète":"Synthèse de tes qualités : endurance, vitesse, seuil, économie, récupération, régularité.","Polarisation":"Répartition du temps entre intensité basse, moyenne et haute. Modèle polarisé : ~80 % bas, peu de moyen."};
+const PROF0={w:68,h:176,hrmax:191,hrrest:44,vma:19.5,thr:"3:52",vol:60};
+const PR0=[["800 m","2:08"],["1500 m","4:21"],["5 km","16:48"],["10 km","35:20"],["Semi","1:17:40"]];
+const RACE0=[{n:"10 km de Bordeaux",d:iso(day(45)),t:"34:30",p:"3:27/km"},{n:"Semi de Nantes",d:iso(day(100)),t:"1:15:00",p:"3:33/km"}];
+const GOAL={kcal:3600,c:520,p:170,f:105},WG=i=>i===6?3.4:3.2;
+const NUT0=Array.from({length:7},(_,i)=>{const z=i===6?.5:1,k=Math.round((3250+R(i,11)*600)*z),c=Math.round(k*.58/4),p=Math.round((150+R(i,12)*30)*z);return{d:iso(day(i-6)),kcal:k,c,p,f:Math.round((k-c*4-p*4)/9)}});
+const WAT0=Array.from({length:7},(_,i)=>({d:iso(day(i-6)),l:i===6?1.25:+(2.5+R(i,13)*1.2).toFixed(2)}));
+const EV0=[...EVENTS,...[[8,"Footing 50’",10,40],[10,"Seuil 4×2000",15,85],[12,"Sortie longue",26,100]].map((e,i)=>({id:"e"+i,date:iso(day(e[0])),name:e[1],warmup:"15’ facile",main:e[1]+" — allure contrôlée",cooldown:"10’ facile",km:e[2],load:e[3]}))];
+const DONE=[...ACTS,...[[-9,"Footing",10.4],[-11,"Seuil 5×5’",13.2],[-12,"Récup",7.5],[-14,"Sortie longue",22.1]].map((a,i)=>({id:"x"+i,date:iso(day(a[0])),name:a[1],km:a[2],pace:"4:35",hr:147,hrmax:170,load:60}))];
+const cat=l=>/glucide|kcal|prot[ée]ine|repas|gel|lipide|calori/i.test(l)?"nutrition":/hydrat|\beau\b|boire|bois|sodium|[ée]lectrolyte|sudation/i.test(l)?"hydra":/s[ée]ance|footing|seuil|VMA|sortie|×|entra[iî]nement/i.test(l)?"agenda":null;
+const CL={agenda:"Agenda",nutrition:"Nutrition",hydra:"Hydratation"};
+const Gauge=({v,max=100,l,c,w=110})=>h`<div class="card !p-3 text-center tip"><div class="tt">${TIP[l]||l}</div><svg viewBox="0 0 120 120" width=${w} class="mx-auto"><circle cx="60" cy="60" r="48" fill="none" stroke-width="11" style=${{stroke:"var(--pn2)"}}/><circle cx="60" cy="60" r="48" fill="none" stroke-width="11" stroke-linecap="round" style=${{stroke:c||"var(--ac)"}} stroke-dasharray=${v/max*301+" 301"} transform="rotate(-90 60 60)"/><text x="60" y="68" text-anchor="middle" style=${{font:"700 26px Space Grotesk",fill:"var(--tx)"}}>${v}</text></svg><div class="mut text-xs mt-1">${l}</div></div>`;
+const Donut=({d})=>{let a=0;const T=d.reduce((s,x)=>s+x[1],0),C=["var(--ac)","var(--wr)","var(--ac2)"];return h`<svg viewBox="0 0 120 120" width="140">${d.map((x,i)=>{const l=x[1]/T*314,e=h`<circle key=${i} cx="60" cy="60" r="50" fill="none" stroke-width="16" style=${{stroke:C[i%3]}} stroke-dasharray=${l+" 314"} stroke-dashoffset=${-a} transform="rotate(-90 60 60)"/>`;a+=l;return e})}</svg>`};
+const Radar=({d})=>{const n=d.length,P=(i,r)=>[60+r*Math.sin(i/n*6.2832),60-r*Math.cos(i/n*6.2832)];return h`<svg viewBox="-20 -5 200 130" class="w-full" style=${{maxWidth:320}}>${[.33,.66,1].map(k=>h`<polygon key=${k} points=${d.map((_,i)=>P(i,50*k).join(",")).join(" ")} fill="none" style=${{stroke:"var(--ln)"}}/>`)}<polygon points=${d.map((x,i)=>P(i,50*x[1]/100).join(",")).join(" ")} stroke-width="2" style=${{fill:"color-mix(in srgb,var(--ac) 30%,transparent)",stroke:"var(--ac)"}}/>${d.map((x,i)=>{const q=P(i,62);return h`<text key=${i} x=${q[0]} y=${q[1]+3} text-anchor="middle" font-size="8" style=${{fill:"var(--mut)"}}>${x[0]}</text>`})}</svg>`};
+const ZoneBar=({v})=>h`<div><div class="relative"><div class="flex h-3 rounded-full overflow-hidden gap-px">${["var(--rd)","var(--ac)","var(--mut)","var(--wr)"].map(c=>h`<i key=${c} style=${{flex:1,background:c}}/>`)}</div><i style=${{position:"absolute",top:-5,width:4,height:22,borderRadius:4,background:"var(--tx)",left:Math.min(97,Math.max(0,(v+30)/60*100))+"%"}}/></div><div class="flex justify-between text-[10px] mut mt-2"><span>Surcharge</span><span>Optimal</span><span>Neutre</span><span>Fraîcheur</span></div></div>`;
+const EB=(on,set)=>h`<button class=${on?"btn":"btn2"} onClick=${()=>set(!on)}>${on?"✓ Terminé":"✏️ Modifier"}</button>`;
+const Notes=({k,t})=>{const X=useContext(Ctx),l=X.notes[k];return l.length?h`<${Card} c="mb-4"><div class="font-semibold mb-2">🤖 ${t}</div>${l.map((x,i)=>h`<div key=${i} class="flex justify-between gap-3 text-sm mb-1"><span>${x}</span><button class="mut" onClick=${()=>X.setNotes(n=>({...n,[k]:n[k].filter((_,j)=>j!==i)}))}>✕</button></div>`)}<//>`:null};
+
+function Cal({ev,acts,pick,onEv,onAct}){
+ const t=new Date();t.setHours(12,0,0,0);const st=new Date(t);st.setDate(t.getDate()-14);st.setDate(st.getDate()-((st.getDay()+6)%7));
+ const cells=Array.from({length:35},(_,i)=>{const d=new Date(st);d.setDate(st.getDate()+i);return d}),T=iso(t);
+ return h`<div><div class="grid grid-cols-7 gap-1 mb-1 text-center mut text-xs">${["Lun","Mar","Mer","Jeu","Ven","Sam","Dim"].map(x=>h`<div key=${x}>${x}</div>`)}</div>
+ <div class="grid grid-cols-7 gap-1">${cells.map(d=>{const k=iso(d),es=ev.filter(e=>e.date===k),as=acts.filter(a=>a.date===k),td=k===T;return h`<div key=${k} class=${"card !p-1.5 md:!p-2 min-h-[72px] md:min-h-[96px] "+(k<T?"opacity-70":"")} style=${td?{borderColor:"var(--ac)",boxShadow:"var(--glow)"}:null}><div class=${"text-xs "+(td?"ac font-bold":"mut")}>${d.getDate()}</div>${as.map(a=>h`<button key=${a.id} class="block w-full text-left text-[10px] md:text-xs rounded-md px-1 mt-1 truncate" style=${{background:"var(--pn2)"}} onClick=${()=>onAct(a)}>✓ ${a.km} km</button>`)}${es.map(e=>h`<button key=${e.id} class="block w-full text-left text-[10px] md:text-xs px-1 mt-1 truncate btn !rounded-md !p-0 !px-1" onClick=${()=>onEv(e)}>${e.ia?"🤖 ":""}${e.name}</button>`)}</div>`})}</div>
+ <div class="mut text-xs mt-2">✓ séance réalisée · bouton coloré = séance planifiée · 🤖 ajoutée par le coach</div></div>`}
+
+function Home(){
+ const X=useContext(Ctx),td=iso(new Date()),nx=[...X.ev].filter(e=>e.date>=td).sort((a,b)=>a.date<b.date?-1:1)[0],T=X.nut[6],W=X.wat[6],hr=new Date().getHours(),hello=hr<12?"Bonjour":hr<18?"Bon après-midi":"Bonsoir",pk=Math.round(T.kcal/GOAL.kcal*100),pw=Math.round(W.l/WG(6)*100);
+ const cs=Array.from({length:30},(_,i)=>52+i*.3+Math.sin(i/3)*2),as=cs.map((c,i)=>c+8*Math.sin(i/2.3)+2);
+ return h`<div><div class="card !p-6 mb-4 grid md:grid-cols-[1fr_auto] gap-6 items-center"><div><div class="mut text-sm">${hello} · ${new Date().toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"})}</div>
+  <h1 class="hd text-4xl md:text-6xl mt-1">Tu es <span class="ac">prêt à performer</span></h1><p class="mut mt-3 max-w-xl">Fatigue modérée (TSB −9), HRV au-dessus de ta base et bon sommeil : une séance qualitative est possible, en gardant 48 h de facile derrière.</p>
+  <div class="flex flex-wrap gap-2 mt-4"><button class="btn" onClick=${()=>X.goCoach("Analyse ma fatigue actuelle")}>🤖 Analyser avec le coach</button><button class="btn2" onClick=${()=>X.setTab(2)}>📅 Voir l’agenda</button></div></div><${Gauge} l="Readiness" v=${78} w=${170}/></div>
+ <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2 mb-4">${[["CTL (Fitness)","62","","+3,1 / 7 j"],["ATL (Fatigue)","71","","+6,0 / 7 j"],["TSB (Forme)","−9","","−4 / 7 j"],["HRV (rMSSD)","84","ms","+5 vs base"],["FC repos","44","bpm","−1"],["Sommeil","7 h 42"]].map(k=>Kpi(k))}</div>
+ <div class="grid lg:grid-cols-3 gap-3 mb-4"><${Card} c="lg:col-span-2"><div class="mut text-xs">Prochaine séance</div>${nx?h`<div class="hd text-3xl mb-2">${nx.name} <span class="mut text-base">· ${nx.date}</span></div><div class="text-sm space-y-1">${nx.warmup&&h`<div><b class="ac">Warmup</b> ${nx.warmup}</div>`}<div><b class="ac">Main Set</b> ${nx.main}</div>${nx.cooldown&&h`<div><b class="ac">Cooldown</b> ${nx.cooldown}</div>`}</div><div class="mut text-sm mt-2">${nx.km} km · charge ${nx.load}</div>`:h`<div class="mut">Aucune séance planifiée.</div>`}<//>
+  <${Card}><div class="font-semibold mb-3">Aujourd’hui</div><div class="text-sm flex justify-between"><span>🍝 Calories</span><span class="mut">${pk} %</span></div><div class="bar mb-3"><i style=${{width:Math.min(100,pk)+"%"}}/></div><div class="text-sm flex justify-between"><span>💧 Hydratation</span><span class="mut">${pw} %</span></div><div class="bar"><i style=${{width:Math.min(100,pw)+"%"}}/></div><//></div>
+ <div class="grid lg:grid-cols-2 gap-3"><${Card}><div class="font-semibold mb-2">Fitness / Fatigue · 30 jours</div><${Chart} lines=${[{n:"c",d:cs,c:"var(--ac)"},{n:"a",d:as,c:"var(--wr)"}]}/><//>
+  <${Card}><div class="font-semibold mb-3">Points d’attention</div>${["✅ HRV +5 ms vs base : bonne récupération","✅ ACWR à 1,14 : zone de charge optimale","⚠️ Charge 7 j en hausse de 12 %","💤 Sommeil 7 h 42 : objectif 8 h"].map(x=>h`<div key=${x} class="text-sm mb-2">${x}</div>`)}<//></div></div>`}
+
+function Nutrition({go}){
+ const X=useContext(Ctx),L=X.nut,T=L[6],[dur,setD]=useState(120),[gph,setG]=useState(60),[f,setF]=useState({kcal:"",c:"",p:"",f:""}),pc=(v,g)=>Math.round(v/g*100),av=k=>Math.round(L.reduce((s,x)=>s+x[k],0)/7);
+ const M=[["Calories","kcal","kcal"],["Glucides","c","g"],["Protéines","p","g"],["Lipides","f","g"]],col=p=>p>=90?"var(--ac)":p>=75?"var(--wr)":"var(--rd)",dn=d=>new Date(d).toLocaleDateString("fr-FR",{weekday:"short"});
+ const add=()=>{const n=k=>+f[k]||0;X.setNut(L.map((x,i)=>i<6?x:{...x,kcal:x.kcal+n("kcal"),c:x.c+n("c"),p:x.p+n("p"),f:x.f+n("f")}));setF({kcal:"",c:"",p:"",f:""})};
+ const Tile=(x,v,sub)=>{const p=pc(v,GOAL[x[1]]);return h`<${Card} key=${x[0]} c="!p-4"><div class="flex justify-between"><span class="mut text-sm">${x[0]}</span><b style=${{color:col(p)}}>${p} %</b></div><div class="hd text-3xl">${v}<span class="text-sm mut font-normal"> / ${GOAL[x[1]]} ${x[2]}</span></div><div class="bar mt-2"><i style=${{width:Math.min(100,p)+"%",background:col(p)}}/></div><div class="mut text-xs mt-1">${sub}</div><//>`};
+ return h`<div><${Title}>Nutrition<//>
+ <h3 class="hd text-2xl mb-3">Aujourd’hui</h3><div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-3">${M.map(x=>Tile(x,T[x[1]],"du jour"))}</div>
+ <${Card} c="mb-8"><div class="font-semibold mb-2">＋ Ajouter un repas / une collation</div><div class="grid grid-cols-2 md:grid-cols-5 gap-2">${[["kcal","kcal"],["c","Glucides (g)"],["p","Protéines (g)"],["f","Lipides (g)"]].map(x=>h`<input key=${x[0]} class="inp" type="number" placeholder=${x[1]} value=${f[x[0]]} onChange=${e=>setF({...f,[x[0]]:e.target.value})}/>`)}<button class="btn" onClick=${add}>Ajouter</button></div><//>
+ <h3 class="hd text-2xl mb-3">7 derniers jours · moyenne vs objectif</h3><div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-3">${M.map(x=>Tile(x,av(x[1]),"moyenne / jour"))}</div>
+ <div class="grid lg:grid-cols-2 gap-3 mb-4"><${Card}><div class="font-semibold mb-2">Calories par jour (% de l’objectif)</div><${Bars} d=${L.map(x=>pc(x.kcal,GOAL.kcal))} lab=${L.map(x=>dn(x.d))}/><//>
+ <${Card} c="tw"><table><thead><tr><th>Jour</th>${M.map(x=>h`<th key=${x[0]}>${x[0]}</th>`)}</tr></thead><tbody>${L.map(x=>h`<tr key=${x.d}><td>${dn(x.d)}</td>${M.map(m=>{const p=pc(x[m[1]],GOAL[m[1]]);return h`<td key=${m[0]}>${x[m[1]]} <b style=${{color:col(p)}}>${p}%</b></td>`})}</tr>`)}</tbody></table><//></div>
+ <${Notes} k="nutrition" t="Conseils du coach enregistrés"/>
+ <${Card}><h3 class="hd text-2xl mb-3">Stratégie glucides & gut-training</h3><div class="grid sm:grid-cols-2 gap-3"><label class="text-sm">Durée (min)<input type="number" class="inp" value=${dur} onChange=${e=>setD(+e.target.value)}/></label><label class="text-sm">Cible (g/h)<input type="number" class="inp" value=${gph} onChange=${e=>setG(+e.target.value)}/></label></div>
+  <div class="grid grid-cols-3 gap-2 mt-4 text-center">${[["Total",Math.round(gph*dur/60)+" g"],["Gels (25 g)",Math.ceil(gph*dur/60/25)],["Boisson (40 g/500 ml)",Math.round(gph*dur/60/40*5)/10+" L"]].map(x=>h`<div key=${x[0]} class="card !p-3"><div class="mut text-xs">${x[0]}</div><div class="hd text-2xl ac">${x[1]}</div></div>`)}</div>
+  <p class="mut text-sm mt-3">Recharge post-séance : 1,0–1,2 g/kg de glucides + 0,3 g/kg de protéines dans les 60 min.</p><button class="btn mt-3" onClick=${()=>go("Que dit RunWise sur la nutrition et le gut-training ?")}>🎙️ Interroger le coach sur les épisodes Nutrition</button><//></div>`}
+
+function Hydra(){
+ const X=useContext(Ctx),L=X.wat,T=L[6],[a,setA]=useState({b:70,f:68.8,d:400,t:60}),pc=(v,g)=>Math.round(v/g*100),col=p=>p>=90?"var(--ac)":p>=75?"var(--wr)":"var(--rd)",dn=d=>new Date(d).toLocaleDateString("fr-FR",{weekday:"short"}),loss=(a.b-a.f+a.d/1000)/(a.t/60),p=pc(T.l,WG(6)),avg=L.reduce((s,x)=>s+x.l,0)/7,pa=pc(avg,3.2);
+ const addMl=v=>X.setWat(L.map((x,i)=>i<6?x:{...x,l:+(x.l+v/1000).toFixed(2)}));
+ return h`<div><${Title}>Hydratation<//>
+ <div class="grid lg:grid-cols-2 gap-3 mb-4"><${Card} c="text-center"><div class="mut text-sm">Objectif du jour : 2,7 L base + 0,7 L séance = ${WG(6)} L</div>
+  <svg viewBox="0 0 120 120" class="mx-auto my-2" width="170"><circle cx="60" cy="60" r="50" fill="none" stroke-width="12" style=${{stroke:"var(--pn2)"}}/><circle cx="60" cy="60" r="50" fill="none" stroke-width="12" stroke-linecap="round" style=${{stroke:col(p)}} stroke-dasharray=${Math.min(100,p)*3.14+" 314"} transform="rotate(-90 60 60)"/><text x="60" y="58" text-anchor="middle" style=${{font:"700 22px Space Grotesk",fill:"var(--tx)"}}>${T.l.toFixed(2)} L</text><text x="60" y="76" text-anchor="middle" style=${{font:"500 12px Inter",fill:"var(--mut)"}}>${p} %</text></svg>
+  <div class="flex justify-center gap-2 flex-wrap">${[250,500,750].map(v=>h`<button key=${v} class="btn" onClick=${()=>addMl(v)}>+${v} ml</button>`)}</div><//>
+ <${Card}><div class="font-semibold mb-1">7 derniers jours</div><div class="mut text-sm mb-2">Moyenne ${avg.toFixed(2)} L/jour · <b style=${{color:col(pa)}}>${pa} %</b> de l’objectif</div><${Bars} d=${L.map(x=>x.l)} lab=${L.map(x=>dn(x.d))}/><//></div>
+ <${Card} c="tw mb-4"><table><thead><tr><th>Jour</th><th>Volume</th><th>Objectif</th><th>Atteint</th></tr></thead><tbody>${L.map((x,i)=>{const q=pc(x.l,WG(i));return h`<tr key=${x.d}><td>${dn(x.d)}</td><td>${x.l.toFixed(2)} L</td><td>${WG(i)} L</td><td><b style=${{color:col(q)}}>${q} %</b></td></tr>`})}</tbody></table><//>
+ <${Notes} k="hydra" t="Conseils du coach enregistrés"/>
+ <${Card}><h3 class="hd text-2xl mb-3">Taux de sudation & électrolytes</h3><div class="grid grid-cols-2 gap-3">${[["b","Poids avant (kg)"],["f","Poids après (kg)"],["d","Volume bu (ml)"],["t","Durée (min)"]].map(f=>h`<label key=${f[0]} class="text-sm">${f[1]}<input type="number" class="inp" value=${a[f[0]]} onChange=${e=>setA({...a,[f[0]]:+e.target.value})}/></label>`)}</div>
+  <div class="grid grid-cols-2 gap-3 mt-4 text-center"><div class="card !p-3"><div class="mut text-xs">Perte hydrique</div><div class="hd text-3xl ac">${loss.toFixed(2)} L/h</div></div><div class="card !p-3"><div class="mut text-xs">Sodium conseillé</div><div class="hd text-3xl ac">${loss>0.8?1000:700} mg/L</div></div></div><//></div>`}
+
+function Profil(){
+ const X=useContext(Ctx),[e1,s1]=useState(false),[e2,s2]=useState(false),[e3,s3]=useState(false),P=X.prof,bmi=(P.w/((P.h/100)**2)).toFixed(1);
+ const FD=[["w","Poids","kg"],["h","Taille","cm"],["hrmax","FC max","bpm"],["hrrest","FC repos","bpm"],["vma","VMA","km/h"],["thr","Allure seuil","min/km"],["vol","Volume cible","km/sem"]];
+ const n=40,ctl=Array.from({length:n},(_,i)=>52+i*.22+Math.sin(i/3)*2),atl=Array.from({length:n},(_,i)=>50+Math.sin(i/2)*10+i*.2),tsb=ctl.map((c,i)=>c-atl[i]);
+ const up=(arr,set,i,j,v)=>set(arr.map((r,k)=>k!==i?r:Array.isArray(r)?r.map((c,m)=>m===j?v:c):{...r,[j]:v})),jx=d=>Math.ceil((new Date(d)-new Date())/864e5);
+ return h`<div><${Title}>Profil<//>
+ <div class="flex justify-between items-center mb-3"><h3 class="hd text-2xl">Fiche athlète</h3>${EB(e1,s1)}</div>
+ <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 gap-2 mb-4">${FD.map(f=>h`<${Card} key=${f[0]} c="!p-3"><div class="mut text-xs">${f[1]}</div>${e1?h`<input class="inp !py-1" value=${P[f[0]]} onChange=${e=>X.setProf({...P,[f[0]]:e.target.value})}/>`:h`<div class="hd text-3xl">${P[f[0]]} <span class="text-sm mut font-normal">${f[2]}</span></div>`}<//>`)}<${Card} c="!p-3"><div class="mut text-xs">IMC</div><div class="hd text-3xl">${bmi}</div><//></div>
+ <${Card} c="mb-8"><div class="flex flex-wrap gap-4 mb-2 text-sm"><span class="ac">● CTL ${ctl[n-1].toFixed(0)}</span><span style=${{color:"var(--wr)"}}>● ATL ${atl[n-1].toFixed(0)}</span><span class="mut">● TSB ${tsb[n-1].toFixed(0)}</span></div><${Chart} lines=${[{n:"c",d:ctl,c:"var(--ac)"},{n:"a",d:atl,c:"var(--wr)"},{n:"t",d:tsb,c:"var(--mut)"}]}/><//>
+ <div class="flex justify-between items-center mb-3"><h3 class="hd text-2xl">Records personnels</h3>${EB(e2,s2)}</div>
+ <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 mb-2">${X.prs.map((p,i)=>h`<${Card} key=${i} c="!p-3 text-center">${e2?h`<input class="inp !py-1 mb-1" value=${p[0]} onChange=${e=>up(X.prs,X.setPrs,i,0,e.target.value)}/><input class="inp !py-1" value=${p[1]} onChange=${e=>up(X.prs,X.setPrs,i,1,e.target.value)}/><button class="mut text-xs mt-1" onClick=${()=>X.setPrs(X.prs.filter((_,k)=>k!==i))}>✕ Supprimer</button>`:h`<div class="mut text-xs">${p[0]}</div><div class="hd text-2xl ac">${p[1]}</div>`}<//>`)}</div>
+ ${e2&&h`<button class="btn2 mb-4" onClick=${()=>X.setPrs([...X.prs,["Distance","0:00"]])}>＋ Ajouter un record</button>`}
+ <div class="flex justify-between items-center mt-6 mb-3"><h3 class="hd text-2xl">Objectifs de saison</h3>${EB(e3,s3)}</div>
+ <div class="grid sm:grid-cols-2 gap-3 mb-2">${X.races.map((r,i)=>h`<${Card} key=${i}>${e3?h`<div class="grid grid-cols-2 gap-2"><input class="inp col-span-2" value=${r.n} onChange=${e=>up(X.races,X.setRaces,i,"n",e.target.value)}/><input type="date" class="inp" value=${r.d} onChange=${e=>up(X.races,X.setRaces,i,"d",e.target.value)}/><input class="inp" placeholder="Chrono" value=${r.t} onChange=${e=>up(X.races,X.setRaces,i,"t",e.target.value)}/><input class="inp" placeholder="Allure" value=${r.p} onChange=${e=>up(X.races,X.setRaces,i,"p",e.target.value)}/><button class="mut" onClick=${()=>X.setRaces(X.races.filter((_,k)=>k!==i))}>✕ Supprimer</button></div>`:h`<div class="flex justify-between"><div class="font-semibold">${r.n}</div><div class="hd text-3xl ac">J-${jx(r.d)}</div></div><div class="mut text-sm">${r.d} · chrono visé ${r.t} · allure ${r.p}</div>`}<//>`)}</div>
+ ${e3&&h`<button class="btn2" onClick=${()=>X.setRaces([...X.races,{n:"Nouvelle course",d:iso(day(60)),t:"",p:""}])}>＋ Ajouter une course</button>`}</div>`}
+
+function Settings({s,set,test,lat,reset}){
+  const X=useContext(Ctx);
+ return h`<div class="max-w-2xl"><${Title}>Paramètres<//>
+ <${Card} c="mb-4"><h3 class="font-semibold mb-2">Connexion backend FastAPI</h3><input class="inp" value=${s.url} onChange=${e=>set({...s,url:e.target.value})} placeholder="http://localhost:8000"/>
+  <div class="flex flex-wrap items-center gap-3 mt-3"><button class="btn" onClick=${test}>🔄 Tester la connexion API</button>${lat!=null&&h`<span class="mut text-sm">${lat<0?"Injoignable":lat+" ms"}</span>`}</div>
+  <label class="flex items-center gap-2 mt-3 text-sm"><input type="checkbox" checked=${s.demo} onChange=${e=>set({...s,demo:e.target.checked})}/> Activer les données de démo si hors-ligne</label><//>
+ <${Card}><h3 class="font-semibold mb-2">Base de connaissances</h3><div class="flex justify-between text-sm mb-1"><span>ChromaDB</span><span class="mut">${s.online? X.idxCount :"—"} / 52 vidéos RunWise indexées</span></div><div class="bar mb-4"><i style=${{width:s.online?"100%":"0%"}}/></div>
+  <button class="btn2" onClick=${reset}>Réinitialiser l’historique de conversation</button><//></div>`}
+
+function App(){
+ const [tab,setT]=useState(0),[nav,setN]=useState(false),[s,set]=useState({url:"http://localhost:8000",demo:true,online:false}),[lat,setLat]=useState(null),[pre,setPre]=useState(null),[toast,setToast]=useState(""),[msgs,setM]=useState([]);
+ const [ev,setEv]=useState(EV0),[notes,setNotes]=useState({nutrition:[],hydra:[]}),[prof,setProf]=useState(PROF0),[prs,setPrs]=useState(PR0),[races,setRaces]=useState(RACE0),[nut,setNut]=useState(NUT0),[wat,setWat]=useState(WAT0);
+ async function api(p,o){try{const c=new AbortController();setTimeout(()=>c.abort(),2500);const r=await fetch(s.url+p,{...o,headers:{"Content-Type":"application/json"},signal:c.signal});if(!r.ok)throw 0;return await r.json()}catch(e){return null}}
+ const [done,setDone]=useState(DONE),[vids,setVids]=useState(VIDS),[idxCount,setIdxCount]=useState(0);
+
+ async function test(){
+  const t=performance.now(),r=await api("/api/videos");
+  setLat(r?Math.round(performance.now()-t):-1);
+  set(x=>({...x,online:!!r}));
+  if(r){
+   setIdxCount(r.indexed_count||0);
+   if(r.videos&&r.videos.length){
+    setVids(r.videos.map((v,i)=>({video_id:v.id,title:v.title,ep:i+1,indexed:v.indexed})));
+   }
+   // Charger les séances réalisées et le wellness depuis Intervals.icu
+   const dash=await api("/api/intervals/dashboard?days=28");
+   if(dash&&dash.activities&&dash.activities.length){
+    setDone(dash.activities.map(a=>({
+     id:a.id, date:a.date, name:a.name, km:a.distance_km,
+     pace:a.pace, hr:a.avg_hr||"—", hrmax:a.max_hr||"—", load:a.load||0
+    })));
+   }
+   // Charger les séances planifiées à venir
+   const evs=await api("/api/intervals/events?days_ahead=21");
+   if(evs&&evs.events&&evs.events.length){
+    setEv(evs.events.map(e=>({
+     id:e.id, date:e.date, name:e.name||"Séance", warmup:"",
+     main:e.description||"Séance planifiée sur Intervals.icu", cooldown:"",
+     km:e.distance_km, load:e.load||0
+    })));
+   }
+  }
+ }
+ useEffect(()=>{test()},[]);
+ const say=m=>{setToast(m);setTimeout(()=>setToast(""),2600)};
+ const add=(c,t)=>{if(c==="agenda"){const a=t.split(":"),b=a.slice(1).join(":").trim();setEv(e=>[...e,{id:"c"+Date.now(),date:iso(day(1)),name:a[0].trim().slice(0,40),warmup:"",main:b||t,cooldown:"",km:0,load:0,ia:true}]);say("📅 Ajouté à l’agenda (demain) — date modifiable dans l’onglet Agenda")}else{setNotes(n=>({...n,[c]:[...n[c],t]}));say(c==="nutrition"?"🍝 Ajouté à Nutrition":"💧 Ajouté à Hydratation")}};
+ const goCoach=q=>{setPre(q);setT(1)};
+ const X={ev,setEv,done,vids,idxCount,notes,setNotes,prof,setProf,prs,setPrs,races,setRaces,nut,setNut,wat,setWat,add,msgs,setM,goCoach,setTab:setT,api};
+ const side=h`<aside class="flex flex-col h-full p-4 gap-4" style=${{width:260,background:"var(--pn)",borderRight:"1px solid var(--ln)"}}>
+  <div><div class="flex items-center gap-3"><div class="logo">⚡</div><div class="hd text-2xl leading-none">Shadow<br/><span class="ac">Coach</span></div></div><div class="flex items-center gap-2 text-xs mt-3 mut"><i style=${{width:9,height:9,borderRadius:9,background:s.online?"var(--ac)":"var(--wr)"}}/>${s.online?"Connecté":"Mode Démo"}</div></div>
+  <nav class="flex flex-col gap-1">${TABS.map((t,i)=>h`<button key=${i} class=${"nav "+(tab===i?"on":"")} onClick=${()=>{setT(i);setN(false)}}><span>${t[0]}</span>${t[1]}</button>`)}</nav></aside>`;
+ return h`<${Ctx.Provider} value=${X}><div class="flex h-full"><div class="hidden md:block">${side}</div>
+  ${nav&&h`<div class="md:hidden fixed inset-0 z-30" style=${{background:"#0008"}} onClick=${()=>setN(false)}>${side}</div>`}
+  <main class="flex-1 min-w-0 overflow-y-auto"><div class="md:hidden flex items-center gap-3 p-3"><button class="btn2" onClick=${()=>setN(true)}>☰</button><span class="hd text-xl">${TABS[tab][1]}</span></div>
+   ${tab===1?h`<${Coach} api=${api} demo=${s.demo} prefill=${pre} clear=${()=>setPre(null)}/>`:h`<div class="p-4 md:p-8 max-w-6xl">${[h`<${Home}/>`,null,h`<${Agenda} go=${goCoach}/>`,h`<${Nutrition} go=${goCoach}/>`,h`<${Hydra}/>`,h`<${Profil}/>`,h`<${Stats}/>`,h`<${Settings} s=${s} set=${set} test=${test} lat=${lat} reset=${async()=>{await api("/api/chat/reset",{method:"POST"});setM([])}}/>`][tab]}</div>`}</main></div>
+  ${toast&&h`<div class="card fixed left-1/2 -translate-x-1/2 bottom-6 z-50 !py-3 !px-5 text-sm" style=${{background:"var(--tx)",color:"var(--bg)"}}>${toast}</div>`}<//>`}
+ReactDOM.createRoot(document.getElementById("root")).render(h`<${App}/>`);
+</script></body></html>

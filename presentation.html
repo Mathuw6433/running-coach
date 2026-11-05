@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8"><title>Shadow Coach — Le coach IA des coureurs</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f3f4fb;--pn:rgba(255,255,255,.7);--ln:rgba(20,24,40,.1);--tx:#12141c;--mut:#626a80;--ac:#5b3df5;--ac2:#0aa5c0;--acT:#fff;--g:linear-gradient(120deg,#6d4cff,#08b6d4);--glow:0 10px 40px -10px #6d4cffaa;--grid:rgba(20,24,40,.06);box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+:root[data-theme=dark]{--bg:#05060a;--pn:rgba(255,255,255,.045);--ln:rgba(255,255,255,.1);--tx:#eef1fb;--mut:#8b92a8;--ac:#c4ff4d;--ac2:#22e5c4;--acT:#05060a;--g:linear-gradient(120deg,#c4ff4d,#22e5c4);--glow:0 10px 50px -10px #c4ff4daa;--grid:rgba(255,255,255,.05)}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#05060a;--pn:rgba(255,255,255,.045);--ln:rgba(255,255,255,.1);--tx:#eef1fb;--mut:#8b92a8;--ac:#c4ff4d;--ac2:#22e5c4;--acT:#05060a;--g:linear-gradient(120deg,#c4ff4d,#22e5c4);--glow:0 10px 50px -10px #c4ff4daa;--grid:rgba(255,255,255,.05)}}
+*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:90px}
+body{margin:0;background:var(--bg);color:var(--tx);font:400 16px/1.6 Inter,system-ui,sans-serif;overflow-x:hidden}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:60;background:var(--bg)}
+.bgfx{position:fixed;inset:0;z-index:-1;background:linear-gradient(var(--grid) 1px,transparent 1px) 0 0/48px 48px,linear-gradient(90deg,var(--grid) 1px,transparent 1px) 0 0/48px 48px;-webkit-mask-image:radial-gradient(ellipse at 50% 20%,#000 20%,transparent 75%);mask-image:radial-gradient(ellipse at 50% 20%,#000 20%,transparent 75%)}
+.blob{position:fixed;z-index:-2;width:520px;height:520px;border-radius:50%;filter:blur(110px);opacity:.28;animation:drift 18s ease-in-out infinite alternate}
+.b1{background:var(--ac);top:-160px;left:-120px}.b2{background:var(--ac2);top:80px;right:-160px;animation-delay:-6s}
+@keyframes drift{to{transform:translate(60px,80px) scale(1.15)}}
+h1,h2,h3,.hd{font-family:'Space Grotesk',sans-serif;letter-spacing:-.035em;margin:0;line-height:1.05}
+.grad{background:var(--g);-webkit-background-clip:text;background-clip:text;color:transparent}
+a{color:inherit;text-decoration:none}.wrap{max-width:1160px;margin:0 auto;padding:0 20px}
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:50;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);background:color-mix(in srgb,var(--bg) 70%,transparent);border-bottom:1px solid var(--ln)}
+.bar{display:flex;align-items:center;justify-content:space-between;height:68px;gap:12px}
+.logo{display:flex;align-items:center;gap:10px;font:700 20px 'Space Grotesk';letter-spacing:-.03em}.mark{width:36px;height:36px;border-radius:12px;background:var(--g);color:var(--acT);display:grid;place-items:center;box-shadow:var(--glow)}
+nav{display:flex;gap:26px;color:var(--mut);font-size:14px;font-weight:500}nav a:hover{color:var(--tx)}
+.btn{border:0;cursor:pointer;font:600 14px Inter;padding:10px 20px;border-radius:99px;background:var(--g);color:var(--acT);box-shadow:var(--glow);transition:.2s;display:inline-block}.btn:hover{transform:translateY(-2px) scale(1.03)}
+.ghost{background:var(--pn);color:var(--tx);border:1px solid var(--ln);box-shadow:none}.ghost:hover{border-color:var(--ac)}
+.acts{display:flex;gap:8px;align-items:center}
+.card{background:var(--pn);border:1px solid var(--ln);border-radius:24px;padding:24px;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);box-shadow:inset 0 1px 0 #ffffff14;transition:.3s}
+.card:hover{border-color:color-mix(in srgb,var(--ac) 55%,var(--ln));transform:translateY(-4px)}
+.tag{display:inline-flex;gap:8px;align-items:center;font:500 13px 'Space Grotesk';padding:6px 14px;border-radius:99px;border:1px solid var(--ln);background:var(--pn)}
+.dot{width:8px;height:8px;border-radius:9px;background:var(--ac);box-shadow:0 0 12px var(--ac);animation:pl 2s infinite}@keyframes pl{50%{opacity:.3}}
+.hero{padding:70px 0 40px;display:grid;grid-template-columns:1.05fr .95fr;gap:40px;align-items:center}
+.hero h1{font-size:clamp(40px,6.2vw,76px);margin:18px 0}.hero p.lead{font-size:18px;color:var(--mut);max-width:540px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:26px}.chips span{padding:7px 14px;border-radius:99px;font-size:13px;border:1px solid var(--ln);background:var(--pn)}
+.mock{position:relative;animation:fl 6s ease-in-out infinite alternate}@keyframes fl{to{transform:translateY(-14px)}}
+.mock .card:hover{transform:none}
+.kp{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}.kp div{background:var(--pn);border:1px solid var(--ln);border-radius:14px;padding:10px}.kp small{color:var(--mut);font-size:11px;display:block}.kp b{font:700 20px 'Space Grotesk'}
+.chat{position:absolute;right:-8px;bottom:-34px;max-width:250px;font-size:13px;padding:14px 16px;border-radius:18px;background:var(--g);color:var(--acT);box-shadow:var(--glow);font-weight:500}
+section{padding:80px 0}.eyebrow{font:600 13px 'Space Grotesk';letter-spacing:.14em;text-transform:uppercase;color:var(--ac)}
+h2{font-size:clamp(30px,4.4vw,52px);margin:10px 0 14px}.sub{color:var(--mut);max-width:620px}
+.grid{display:grid;gap:16px;margin-top:40px}.g4{grid-template-columns:repeat(4,1fr)}.g3{grid-template-columns:repeat(3,1fr)}.g2{grid-template-columns:1fr 1fr}
+.ico{width:46px;height:46px;border-radius:14px;display:grid;place-items:center;font-size:22px;background:color-mix(in srgb,var(--ac) 14%,transparent);border:1px solid var(--ln);margin-bottom:14px}
+.card h3{font-size:21px;margin-bottom:8px}.card p{margin:0;color:var(--mut);font-size:14.5px}
+.who .card .big{font-size:34px}.ok li,.no li{list-style:none;margin:10px 0;padding-left:28px;position:relative;font-size:15px}.ok li::before{content:"✓";position:absolute;left:0;color:var(--ac);font-weight:700}.no li::before{content:"–";position:absolute;left:4px;color:var(--mut)}
+ul{padding:0;margin:14px 0 0}
+.bento{grid-template-columns:repeat(4,1fr)}.wide{grid-column:span 2}
+.steps .num{font:700 54px 'Space Grotesk';opacity:.9}
+.band{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;text-align:center}.band b{font:700 clamp(36px,5vw,58px) 'Space Grotesk';display:block}.band span{color:var(--mut);font-size:14px}
+.cta{text-align:center;padding:60px 24px;border-radius:32px;border:1px solid var(--ln);background:radial-gradient(600px 240px at 50% 0,color-mix(in srgb,var(--ac) 20%,transparent),transparent),var(--pn)}
+footer{border-top:1px solid var(--ln);padding:30px 0;color:var(--mut);font-size:13px}
+.rv{opacity:0;transform:translateY(24px);transition:opacity .7s,transform .7s}.rv.in{opacity:1;transform:none}
+.modal{position:fixed;inset:0;z-index:100;display:none;place-items:center;background:#000a;padding:16px;backdrop-filter:blur(6px)}.modal.open{display:grid}
+.box{width:100%;max-width:420px;background:var(--bg);border:1px solid var(--ln);border-radius:28px;padding:28px;box-shadow:var(--glow);position:relative}
+.seg{display:grid;grid-template-columns:1fr 1fr;background:var(--pn);border:1px solid var(--ln);border-radius:99px;padding:4px;margin:18px 0}.seg button{border:0;background:none;color:var(--mut);font:600 14px Inter;padding:9px;border-radius:99px;cursor:pointer}.seg .on{background:var(--g);color:var(--acT)}
+label{display:block;font-size:13px;color:var(--mut);margin:12px 0 4px}input{width:100%;padding:12px 14px;border-radius:14px;border:1px solid var(--ln);background:var(--pn);color:var(--tx);font:400 15px Inter}input:focus{outline:2px solid var(--ac);border-color:transparent}
+.err{color:#ff6161;font-size:13px;min-height:20px;margin-top:8px}.x{position:absolute;top:16px;right:18px;background:none;border:0;color:var(--mut);font-size:20px;cursor:pointer}
+.user{display:none;align-items:center;gap:10px;font-size:14px}.av{width:34px;height:34px;border-radius:50%;background:var(--g);color:var(--acT);display:grid;place-items:center;font-weight:700}
+@media(max-width:900px){nav{display:none}.hero{grid-template-columns:1fr;padding-top:40px}.g4,.bento,.band{grid-template-columns:1fr 1fr}.g3,.g2{grid-template-columns:1fr}.wide{grid-column:span 2}.chat{right:0}}
+@media(max-width:520px){.g4,.bento{grid-template-columns:1fr}.wide{grid-column:auto}.btn.ghost.hide{display:none}}
+</style></head><body><div class="blob b1"></div><div class="blob b2"></div><div class="bgfx"></div>
+<header><div class="wrap bar"><a href="#top" class="logo"><span class="mark">⚡</span>Shadow Coach</a>
+<nav><a href="#pour-qui">Pour qui ?</a><a href="#produits">Produits</a><a href="#comment">Comment ça marche</a></nav>
+<div class="acts" id="guest"><button class="btn ghost" onclick="openM('in')">Se connecter</button><button class="btn" onclick="openM('up')">Créer un compte</button></div>
+<div class="user" id="user"><div class="av" id="av"></div><span id="uname"></span><button class="btn ghost" onclick="logout()">Déconnexion</button></div></div></header>
+
+<main id="top"><div class="wrap hero"><div class="rv"><span class="tag"><i class="dot"></i>Coach IA connecté à Intervals.icu</span>
+<h1>Ton entraînement, <span class="grad">piloté par l’IA.</span></h1>
+<p class="lead">Un seul cockpit pour comprendre ta forme, planifier tes séances, calibrer ta nutrition et ton hydratation — avec un coach qui connaît tes données et la base RunWise.</p>
+<div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:28px"><button class="btn" onclick="openM('up')">Commencer gratuitement →</button><a class="btn ghost" href="#produits">Découvrir les produits</a></div>
+<div class="chips"><span>🏃 Coureurs sur route</span><span>🏅 5 km → semi → marathon</span><span>📊 Utilisateurs d’Intervals.icu</span><span>🎙️ Auditeurs de RunWise</span></div></div>
+<div class="mock rv"><div class="card"><div style="display:flex;justify-content:space-between;align-items:center"><div><small style="color:var(--mut)">Aujourd’hui</small><div class="hd" style="font-size:26px;margin-top:4px">Prêt à <span class="grad">performer</span></div></div>
+<svg width="92" height="92" viewBox="0 0 120 120"><circle cx="60" cy="60" r="48" fill="none" stroke-width="11" style="stroke:var(--ln)"/><circle cx="60" cy="60" r="48" fill="none" stroke-width="11" stroke-linecap="round" stroke-dasharray="235 301" transform="rotate(-90 60 60)" style="stroke:var(--ac)"/><text x="60" y="69" text-anchor="middle" style="font:700 28px Space Grotesk;fill:var(--tx)">78</text></svg></div>
+<svg viewBox="0 0 400 110" width="100%" style="margin-top:12px"><polyline fill="none" stroke-width="3" stroke-linecap="round" style="stroke:var(--ac);filter:drop-shadow(0 0 6px var(--ac))" points="0,80 40,70 80,74 120,52 160,58 200,40 240,46 280,28 320,34 360,18 400,22"/><polyline fill="none" stroke-width="3" stroke-linecap="round" style="stroke:var(--ac2);opacity:.8" points="0,90 40,86 80,80 120,84 160,70 200,72 240,60 280,64 320,52 360,56 400,44"/></svg>
+<div class="kp"><div><small>CTL</small><b>62</b></div><div><small>TSB</small><b>−9</b></div><div><small>HRV</small><b>84 ms</b></div></div></div>
+<div class="chat">🤖 Séance seuil demain : 3×10’ à 3:55/km. <u>＋ Agenda</u></div></div></div>
+
+<section id="pour-qui" class="who"><div class="wrap"><div class="rv"><span class="eyebrow">Pour qui ?</span><h2>Conçu pour les coureurs <span class="grad">qui veulent progresser.</span></h2><p class="sub">Si tu t’entraînes avec une montre, que tu suis tes données et que tu veux des décisions claires plutôt que des graphiques, Shadow Coach est fait pour toi.</p></div>
+<div class="grid g4">
+<div class="card rv"><div class="ico">🏅</div><h3>Le compétiteur</h3><p>Tu prépares un 5 km, un 10 km, un semi ou un marathon et tu vises un chrono précis.</p></div>
+<div class="card rv"><div class="ico">🧭</div><h3>L’autodidacte</h3><p>Tu t’entraînes sans coach et tu veux un avis expert disponible 24 h/24.</p></div>
+<div class="card rv"><div class="ico">📊</div><h3>Le data-addict</h3><p>Tu vis dans Intervals.icu : CTL, ATL, HRV, découplage… et tu veux enfin les comprendre.</p></div>
+<div class="card rv"><div class="ico">🎙️</div><h3>L’auditeur RunWise</h3><p>Tu écoutes le podcast et tu veux ses conseils appliqués à tes propres séances.</p></div></div>
+<div class="grid g2"><div class="card rv"><h3>✅ C’est pour toi si…</h3><ul class="ok"><li>tu cours 3 à 6 fois par semaine</li><li>tu utilises (ou veux utiliser) Intervals.icu</li><li>tu veux planifier, débriefer et ajuster simplement</li><li>tu t’intéresses à la nutrition et à l’hydratation de l’effort</li></ul></div>
+<div class="card rv"><h3>Moins adapté si…</h3><ul class="no"><li>tu cherches une appli pour débuter à zéro sans montre</li><li>tu fais surtout du trail ultra ou du triathlon</li><li>tu ne veux pas suivre de données d’entraînement</li></ul></div></div></div></section>
+
+<section id="produits"><div class="wrap"><div class="rv"><span class="eyebrow">Les produits</span><h2>Huit outils. <span class="grad">Un seul cockpit.</span></h2><p class="sub">Tout ce qu’il faut pour piloter ta saison, de l’état de forme du matin à la recharge post-séance.</p></div>
+<div class="grid bento">
+<div class="card wide rv"><div class="ico">🏠</div><h3>Aujourd’hui</h3><p>Ton score de readiness, tes indicateurs clés et ta prochaine séance, résumés dès l’ouverture.</p></div>
+<div class="card wide rv"><div class="ico">💬</div><h3>AI Coach</h3><p>Pose tes questions, obtiens des réponses sourcées avec extraits vidéo RunWise, puis ajoute chaque conseil à l’agenda, à la nutrition ou à l’hydratation en un clic.</p></div>
+<div class="card rv"><div class="ico">📅</div><h3>Agenda & Séances</h3><p>Calendrier sur 4 semaines, détail des tours, export Google Agenda et .ics.</p></div>
+<div class="card rv"><div class="ico">🍝</div><h3>Nutrition</h3><p>Calories et macros vs objectifs, stratégie glucides et gut-training.</p></div>
+<div class="card rv"><div class="ico">💧</div><h3>Hydratation</h3><p>Objectif dynamique, suivi sur 7 jours, taux de sudation et sodium.</p></div>
+<div class="card rv"><div class="ico">👤</div><h3>Profil</h3><p>Physiologie, records et objectifs de saison, entièrement modifiables.</p></div>
+<div class="card wide rv"><div class="ico">📊</div><h3>Statistiques</h3><p>Plus de 50 indicateurs d’Intervals.icu — charge, récupération, volume, zones, performance, biomécanique — avec bulles d’explication et visualisations.</p></div>
+<div class="card wide rv"><div class="ico">⚙️</div><h3>Paramètres & backend</h3><p>Connexion à ton serveur FastAPI, mode démo hors-ligne, base vectorielle des 52 vidéos RunWise.</p></div></div></div></section>
+
+<section><div class="wrap"><div class="card rv band"><div><b class="grad">50+</b><span>statistiques décodées</span></div><div><b class="grad">52</b><span>vidéos RunWise indexées</span></div><div><b class="grad">8</b><span>outils intégrés</span></div><div><b class="grad">1 clic</b><span>du conseil à l’action</span></div></div></div></section>
+
+<section id="comment" class="steps"><div class="wrap"><div class="rv"><span class="eyebrow">Comment ça marche</span><h2>Prêt en <span class="grad">trois étapes.</span></h2></div>
+<div class="grid g3"><div class="card rv"><div class="num grad">01</div><h3>Connecte tes données</h3><p>Relie ton compte Intervals.icu : séances, wellness, charge et zones arrivent automatiquement.</p></div>
+<div class="card rv"><div class="num grad">02</div><h3>Parle à ton coach</h3><p>Analyse de fatigue, débrief de séance, conseils de volume : l’IA croise tes chiffres et la base RunWise.</p></div>
+<div class="card rv"><div class="num grad">03</div><h3>Passe à l’action</h3><p>Ajoute la séance à ton agenda, le conseil à ta nutrition, la consigne à ton hydratation.</p></div></div></div></section>
+
+<section><div class="wrap"><div class="cta rv"><h2>Prends une longueur <span class="grad">d’avance.</span></h2><p class="sub" style="margin:0 auto 26px">Crée ton compte et ouvre ton premier tableau de bord en moins de deux minutes.</p><button class="btn" onclick="openM('up')">Créer mon compte →</button></div></div></section></main>
+<footer><div class="wrap" style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px"><span>© 2026 Shadow Coach — fait pour les coureurs</span><span>Connecté à Intervals.icu · Base RunWise</span></div></footer>
+
+<div class="modal" id="m" onclick="if(event.target===this)closeM()"><div class="box"><button class="x" onclick="closeM()" aria-label="Fermer">✕</button>
+<div class="logo"><span class="mark">⚡</span>Shadow Coach</div>
+<div class="seg"><button id="t-in" onclick="mode('in')">Connexion</button><button id="t-up" onclick="mode('up')">Créer un compte</button></div>
+<div id="ok" style="display:none;text-align:center;padding:20px 0"><div style="font-size:44px">🎉</div><h3 class="hd" style="font-size:26px;margin:8px 0">Bienvenue <span id="wn"></span></h3><p style="color:var(--mut)">Tu es connecté. Ton cockpit t’attend.</p><button class="btn" onclick="window.location.href='/app'">Accéder à mon cockpit →</button></div>
+<form id="f" onsubmit="go(event)" novalidate><div id="nm"><label for="n">Prénom</label><input id="n" autocomplete="given-name" placeholder="Camille"></div>
+<label for="e">E-mail</label><input id="e" type="email" autocomplete="email" placeholder="toi@exemple.com"><label for="p">Mot de passe</label><input id="p" type="password" autocomplete="current-password" placeholder="8 caractères minimum">
+<div class="err" id="er"></div><button class="btn" style="width:100%;margin-top:6px;padding:13px" id="sb">Se connecter</button>
+<p style="font-size:12px;color:var(--mut);text-align:center;margin:12px 0 0">Version de démonstration : aucun compte réel n’est créé.</p></form></div></div>
+<script>
+let md="in",user=null;const $=i=>document.getElementById(i);
+function mode(m){md=m;$("t-in").className=m==="in"?"on":"";$("t-up").className=m==="up"?"on":"";$("nm").style.display=m==="up"?"block":"none";$("sb").textContent=m==="up"?"Créer mon compte":"Se connecter";$("er").textContent=""}
+function openM(m){mode(m);$("ok").style.display="none";$("f").style.display="block";$("m").classList.add("open")}
+function closeM(){$("m").classList.remove("open")}
+document.addEventListener("keydown",e=>e.key==="Escape"&&closeM());
+function go(e){e.preventDefault();const n=$("n").value.trim(),m=$("e").value.trim(),p=$("p").value;
+ if(md==="up"&&!n)return $("er").textContent="Indique ton prénom.";
+ if(!/^\S+@\S+\.\S+$/.test(m))return $("er").textContent="Adresse e-mail invalide.";
+ if(p.length<8)return $("er").textContent="Le mot de passe doit contenir au moins 8 caractères.";
+ user=md==="up"?n:m.split("@")[0];user=user.charAt(0).toUpperCase()+user.slice(1);
+ $("guest").style.display="none";$("user").style.display="flex";$("av").textContent=user[0];$("uname").textContent=user;$("wn").textContent=user;
+ $("f").style.display="none";$("ok").style.display="block";$("p").value=""}
+function logout(){user=null;$("user").style.display="none";$("guest").style.display="flex"}
+const io=new IntersectionObserver(es=>es.forEach(x=>{if(x.isIntersecting){x.target.classList.add("in");io.unobserve(x.target)}}),{threshold:.12});
+document.querySelectorAll(".rv").forEach((el,i)=>{el.style.transitionDelay=(i%4)*70+"ms";io.observe(el)});
+</script></body></html>
